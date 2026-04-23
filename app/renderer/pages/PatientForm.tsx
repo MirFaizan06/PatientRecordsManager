@@ -10,6 +10,7 @@ import Button from '../components/Button'
 import { ClipboardIcon, XIcon } from '../components/Icons'
 import { useNameSuggest } from '../hooks/useNameSuggest'
 import NameSuggestDropdown from '../components/NameSuggestDropdown'
+import PrescriptionModal from '../components/PrescriptionModal'
 
 interface PatientFormProps {
   initialPatient?: Patient | null
@@ -40,6 +41,23 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
   const [form, setForm] = useState<PatientFormData>(initialPatient ? patientToForm(initialPatient) : EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<PatientFormData>>({})
   const [saving, setSaving] = useState(false)
+
+  // Print prescription state
+  const [rxPatient, setRxPatient] = useState<Patient | null>(null)
+  const [showRx, setShowRx] = useState(false)
+
+  // Ctrl+P shortcut — open print modal when a patient was just saved
+  useEffect(() => {
+    if (!rxPatient) return
+    const handler = (e: globalThis.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault()
+        setShowRx(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [rxPatient])
 
   // Autocomplete state
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -161,6 +179,7 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
         ? `Returning visit recorded for ${patient.name}.`
         : 'New patient added successfully.'
       toast(msg, 'success')
+      setRxPatient(patient)
 
       if (!isEdit) {
         setForm(EMPTY_FORM)
@@ -179,6 +198,8 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     setSelectedPatient(null)
     setDropdownOpen(false)
     resetSuggest()
+    setRxPatient(null)
+    setShowRx(false)
   }
 
   const showDropdown = !isEdit && !selectedPatient && dropdownOpen && (suggestLoading || noResults || suggestions.length > 0)
@@ -207,6 +228,59 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
         </div>
         <button className="btn btn-ghost btn-sm" onClick={onBack}>← Back</button>
       </div>
+
+      {/* ── Print Prescription Banner ── */}
+      {rxPatient && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: '#e8f5f5', border: '1.5px solid #1B5E60',
+          borderRadius: 'var(--radius-md)', padding: '12px 18px',
+          flexShrink: 0,
+        }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E60' }}>
+              {rxPatient.name} — saved successfully
+            </div>
+            <div style={{ fontSize: 11, color: '#2a7a7a', marginTop: 2 }}>
+              Print the prescription now or dismiss and print later from Search · Shortcut: Ctrl+P
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={() => setShowRx(true)}
+              style={{
+                background: '#1B5E60', color: '#fff', border: 'none',
+                borderRadius: 6, padding: '8px 18px', fontSize: 12,
+                fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+                boxShadow: '0 1px 4px rgba(27,94,96,0.35)',
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+              </svg>
+              Print Prescription
+            </button>
+            <button
+              onClick={() => setRxPatient(null)}
+              style={{
+                background: 'transparent', color: '#555',
+                border: '1px solid #aac5c5', borderRadius: 6,
+                padding: '8px 12px', fontSize: 12, cursor: 'pointer',
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showRx && rxPatient && (
+        <PrescriptionModal
+          patient={rxPatient}
+          onClose={() => setShowRx(false)}
+        />
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, flex: 1 }}>
         {/* Left — Form */}

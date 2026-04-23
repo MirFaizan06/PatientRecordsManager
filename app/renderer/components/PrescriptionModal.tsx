@@ -47,6 +47,18 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
 
   const handlePrint = () => window.print()
 
+  // Ctrl+P inside the modal triggers print directly
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault()
+        window.print()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
   // Inject print-specific CSS
   useEffect(() => {
     const style = document.createElement('style')
@@ -131,6 +143,7 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
             <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
           </svg>
           Print Prescription
+          <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 400, marginLeft: 4 }}>(Ctrl+P)</span>
         </button>
         <button
           onClick={onClose}
