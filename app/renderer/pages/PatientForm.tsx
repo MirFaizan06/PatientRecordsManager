@@ -19,14 +19,14 @@ interface PatientFormProps {
 }
 
 const EMPTY_FORM: PatientFormData = {
-  name: '', age: '', address: '', phone: '',
+  name: '', age: '', sex: '', address: '', phone: '',
   heightValue: '', heightUnit: 'cm',
   weightValue: '', weightUnit: 'kg'
 }
 
 function patientToForm(p: Patient): PatientFormData {
   return {
-    name: p.name, age: String(p.age), address: p.address,
+    name: p.name, age: String(p.age), sex: p.sex || '', address: p.address,
     phone: p.phone || '',
     heightValue: String(p.height.value), heightUnit: p.height.unit,
     weightValue: String(p.weight.value), weightUnit: p.weight.unit
@@ -138,6 +138,7 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
       id: patientId,
       name: form.name.trim(),
       age: Number(form.age),
+      ...(form.sex ? { sex: form.sex as 'Male' | 'Female' | 'Other' } : {}),
       address: form.address.trim(),
       phone: form.phone.trim(),
       height: { value: Number(form.heightValue), unit: form.heightUnit },
@@ -293,6 +294,22 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
               placeholder="e.g. 35"
               min={0} max={150}
             />
+
+            <div className="form-group">
+              <label className="form-label required">Sex</label>
+              <select
+                className="select"
+                value={form.sex}
+                onChange={e => set('sex', e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="">Select sex</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.sex && <span className="form-error">{errors.sex}</span>}
+            </div>
 
             <Input
               label="Address" required

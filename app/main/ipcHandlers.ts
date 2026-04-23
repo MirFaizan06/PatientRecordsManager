@@ -75,9 +75,9 @@ export function registerIpcHandlers(storage: Storage, auth: Auth): void {
       const patients = storage.getAllPatients()
       const rows = flattenPatients(patients)
       const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
-      const header = 'Patient ID,Name,Age,Phone,Address,Height,Weight,Visit Date & Time'
+      const header = 'Patient ID,Name,Age,Sex,Phone,Address,Height,Weight,Visit Date & Time'
       const body = rows.map(r =>
-        [esc(r.patientId), esc(r.name), esc(r.age), esc(r.phone), esc(r.address), esc(r.height), esc(r.weight), esc(r.visitTimestamp)].join(',')
+        [esc(r.patientId), esc(r.name), esc(r.age), esc(r.sex), esc(r.phone), esc(r.address), esc(r.height), esc(r.weight), esc(r.visitTimestamp)].join(',')
       )
       fs.writeFileSync(result.filePath, [header, ...body].join('\n'), 'utf-8')
       return { success: true, path: result.filePath }

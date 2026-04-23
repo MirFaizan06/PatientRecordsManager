@@ -8,6 +8,7 @@ export function flattenPatients(patients: Patient[]): TableRow[] {
       patientId: patient.id,
       name: patient.name,
       age: patient.age,
+      sex: patient.sex || '—',
       phone: patient.phone || '—',
       address: patient.address,
       height: `${patient.height.value} ${patient.height.unit}`,

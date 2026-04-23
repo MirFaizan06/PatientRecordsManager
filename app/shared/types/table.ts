@@ -11,6 +11,7 @@ export interface TableRow {
   patientId: string
   name: string
   age: number
+  sex: string
   phone: string
   address: string
   height: string

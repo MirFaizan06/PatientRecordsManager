@@ -3,6 +3,7 @@ import type { PatientFormData } from '../../shared/types/patient'
 export interface ValidationErrors {
   name?: string
   age?: string
+  sex?: string
   address?: string
   phone?: string
   heightValue?: string
@@ -27,6 +28,10 @@ export function validatePatientForm(data: PatientFormData): ValidationErrors {
     if (!Number.isInteger(age) || age < 0 || age > 150) {
       errors.age = 'Enter a valid age (0–150)'
     }
+  }
+
+  if (!data.sex || !['Male', 'Female', 'Other'].includes(data.sex)) {
+    errors.sex = 'Sex is required'
   }
 
   if (!data.address.trim()) {

@@ -58,6 +58,11 @@ export default function PatientCard({ patient, onClick }: PatientCardProps) {
           <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
             Age {patient.age}
           </span>
+          {patient.sex && (
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+              {patient.sex}
+            </span>
+          )}
         </div>
       </div>
 

@@ -22,6 +22,7 @@ export function filterRows(rows: TableRow[], query: string): TableRow[] {
     r.patientId.toLowerCase().includes(q) ||
     r.name.toLowerCase().includes(q) ||
     r.phone.includes(q) ||
-    r.address.toLowerCase().includes(q)
+    r.address.toLowerCase().includes(q) ||
+    r.sex.toLowerCase().includes(q)
   )
 }

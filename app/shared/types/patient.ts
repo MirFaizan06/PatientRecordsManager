@@ -4,6 +4,7 @@ export interface Patient {
   id: string
   name: string
   age: number
+  sex?: 'Male' | 'Female' | 'Other'
   address: string
   phone: string
   height: { value: number; unit: 'cm' | 'ft' }
@@ -15,6 +16,7 @@ export interface Patient {
 export interface PatientFormData {
   name: string
   age: string
+  sex: string
   address: string
   phone: string
   heightValue: string
