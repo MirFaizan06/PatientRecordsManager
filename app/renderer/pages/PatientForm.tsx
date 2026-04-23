@@ -68,7 +68,7 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
 
   const isEdit = !!initialPatient
   const effectiveBase = selectedPatient || initialPatient
-  const patientId = effectiveBase?.id ?? generatePatientId(patientCount)
+  const patientId = effectiveBase?.id ?? generatePatientId()
 
   // Name suggest hook — only active when no initialPatient, no selection yet, dropdown open
   const suggestEnabled = !isEdit && dropdownOpen && !selectedPatient

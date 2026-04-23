@@ -87,12 +87,13 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
   }, [])
 
   const fields: Array<{ label: string; value: string | number }> = [
-    { label: 'Name', value: patient.name },
-    { label: 'Age', value: patient.age },
-    { label: 'Sex', value: patient.sex || '' },
-    { label: 'Weight', value: `${patient.weight.value} ${patient.weight.unit}` },
-    { label: 'Height', value: `${patient.height.value} ${patient.height.unit}` },
-    { label: 'Address', value: patient.address },
+    { label: 'Patient ID', value: patient.id },
+    { label: 'Name',       value: patient.name },
+    { label: 'Age',        value: patient.age },
+    { label: 'Sex',        value: patient.sex || '' },
+    { label: 'Weight',     value: `${patient.weight.value} ${patient.weight.unit}` },
+    { label: 'Height',     value: `${patient.height.value} ${patient.height.unit}` },
+    { label: 'Address',    value: patient.address },
   ]
 
   return (
@@ -114,12 +115,7 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
       {/* Toolbar */}
       <div
         className="rx-no-print"
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginBottom: 18,
-          alignItems: 'center',
-        }}
+        style={{ display: 'flex', gap: 12, marginBottom: 18, alignItems: 'center' }}
       >
         <button
           onClick={handlePrint}
@@ -188,306 +184,105 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
             gap: 14,
           }}
         >
-          {/* Caduceus / Medical Logo */}
           <svg
-            width="56"
-            height="56"
-            viewBox="0 0 56 56"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+            width="56" height="56" viewBox="0 0 56 56"
+            fill="none" xmlns="http://www.w3.org/2000/svg"
             style={{ flexShrink: 0 }}
           >
             <circle cx="28" cy="28" r="27" fill="#e8f5f5" stroke="#1B5E60" strokeWidth="1.5" />
-            <text
-              x="28"
-              y="36"
-              textAnchor="middle"
-              fontSize="26"
-              fill="#1B5E60"
-              fontWeight="bold"
-              fontFamily="serif"
-            >
-              ☤
+            <text x="28" y="36" textAnchor="middle" fontSize="26" fill="#1B5E60" fontWeight="bold" fontFamily="serif">
+              {'☤'}
             </text>
           </svg>
-
-          {/* Clinic name block */}
           <div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                color: '#1B5E60',
-                letterSpacing: '0.8px',
-                lineHeight: 1.15,
-                textTransform: 'uppercase',
-              }}
-            >
+            <div style={{ fontSize: 24, fontWeight: 800, color: '#1B5E60', letterSpacing: '0.8px', lineHeight: 1.15, textTransform: 'uppercase' }}>
               Gastro and Liver Care Center
             </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: '#555',
-                fontStyle: 'italic',
-                marginTop: 3,
-                letterSpacing: '0.2px',
-              }}
-            >
+            <div style={{ fontSize: 12, color: '#555', fontStyle: 'italic', marginTop: 3, letterSpacing: '0.2px' }}>
               A Super-specialty digestive wellness clinic
             </div>
           </div>
         </div>
 
         {/* ── DOCTOR SECTION ── */}
-        <div
-          style={{
-            padding: '8px 20px 10px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-          }}
-        >
-          {/* Left: Doctor info */}
+        <div style={{ padding: '8px 20px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: '#1B5E60',
-                marginBottom: 2,
-              }}
-            >
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1B5E60', marginBottom: 2 }}>
               Dr. Mir Intikhab Maqbool
             </div>
-            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-              MBBS, MD, DNB (Gastroenterology &amp; Hepatology)
-            </div>
-            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-              Consultant Gastroenterology and Hepatology
-            </div>
-            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-              Life member ISG, SGEI
-            </div>
+            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>MBBS, MD, DNB (Gastroenterology &amp; Hepatology)</div>
+            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>Consultant Gastroenterology and Hepatology</div>
+            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>Life member ISG, SGEI</div>
           </div>
-
-          {/* Right: Date */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              marginTop: 4,
-            }}
-          >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
             <span style={{ fontSize: 12, color: '#333', fontWeight: 600 }}>Date:</span>
-            <span
-              style={{
-                fontSize: 12,
-                color: '#333',
-                borderBottom: '1px solid #333',
-                minWidth: 120,
-                display: 'inline-block',
-                paddingBottom: 1,
-              }}
-            >
+            <span style={{ fontSize: 12, color: '#333', borderBottom: '1px solid #333', minWidth: 120, display: 'inline-block', paddingBottom: 1 }}>
               {today}
             </span>
           </div>
         </div>
 
         {/* ── HORIZONTAL RULE ── */}
-        <hr
-          style={{
-            margin: 0,
-            border: 'none',
-            borderTop: '1.5px solid #1B5E60',
-          }}
-        />
+        <hr style={{ margin: 0, border: 'none', borderTop: '1.5px solid #1B5E60' }} />
 
         {/* ── MAIN BODY ── */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'row',
-            padding: '18px 20px',
-            gap: 0,
-          }}
-        >
-          {/* Left Column: Test checkboxes */}
-          <div
-            style={{
-              flex: '0 0 38%',
-              borderRight: '1px solid #ccc',
-              paddingRight: 14,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#1B5E60',
-                marginBottom: 10,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                borderBottom: '1px solid #e0e0e0',
-                paddingBottom: 4,
-              }}
-            >
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', padding: '16px 20px', gap: 0 }}>
+
+          {/* Left Column: Investigations */}
+          <div style={{ flex: '0 0 44%', borderRight: '1px solid #ccc', paddingRight: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1B5E60', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e0e0e0', paddingBottom: 4 }}>
               Investigations
             </div>
             {TESTS.map(test => (
               <div
                 key={test}
                 onClick={() => toggleCheck(test)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 7,
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, cursor: 'pointer', userSelect: 'none' }}
               >
-                {/* Checkbox square */}
-                <div
-                  style={{
-                    width: 13,
-                    height: 13,
-                    border: '1.5px solid #333',
-                    background: checked.has(test) ? '#1B5E60' : '#fff',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {checked.has(test) && (
-                    <span
-                      style={{
-                        color: '#fff',
-                        fontSize: 9,
-                        lineHeight: 1,
-                        fontWeight: 700,
-                      }}
-                    >
-                      ✓
-                    </span>
-                  )}
+                <div style={{ width: 13, height: 13, border: '1.5px solid #333', background: checked.has(test) ? '#1B5E60' : '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {checked.has(test) && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1, fontWeight: 700 }}>&#10003;</span>}
                 </div>
                 <span style={{ fontSize: 12.5, color: '#333' }}>{test}</span>
               </div>
             ))}
           </div>
 
-          {/* Right Column: Patient fields */}
-          <div
-            style={{
-              flex: 1,
-              paddingLeft: 22,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#1B5E60',
-                marginBottom: 14,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                borderBottom: '1px solid #e0e0e0',
-                paddingBottom: 4,
-              }}
-            >
+          {/* Right Column: Patient Details */}
+          <div style={{ flex: 1, paddingLeft: 30 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1B5E60', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e0e0e0', paddingBottom: 4 }}>
               Patient Details
             </div>
+
             {fields.map(({ label, value }) => (
-              <div key={label} style={{ marginBottom: 18 }}>
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: '#333',
-                    minWidth: 56,
-                    display: 'inline-block',
-                  }}
-                >
+              <div key={label} style={{ marginBottom: 13, display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#333', minWidth: 70, flexShrink: 0 }}>
                   {label}:
                 </span>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    borderBottom: '1px solid #555',
-                    minWidth: 170,
-                    marginLeft: 10,
-                    fontSize: 13,
-                    color: '#222',
-                    paddingBottom: 1,
-                  }}
-                >
+                <span style={{ flex: 1, borderBottom: '1px solid #555', marginLeft: 8, fontSize: 12.5, color: '#222', paddingBottom: 1, display: 'block' }}>
                   {value !== '' && value !== null && value !== undefined ? String(value) : ' '}
                 </span>
               </div>
             ))}
 
-            {/* Rx symbol / prescription area */}
-            <div
-              style={{
-                marginTop: 28,
-                fontSize: 32,
-                color: '#1B5E60',
-                fontWeight: 700,
-                fontStyle: 'italic',
-                lineHeight: 1,
-              }}
-            >
-              ℞
+            {/* Rx symbol */}
+            <div style={{ marginTop: 16, fontSize: 32, color: '#1B5E60', fontWeight: 700, fontStyle: 'italic', lineHeight: 1 }}>
+              &#8478;
             </div>
-            <div
-              style={{
-                marginTop: 8,
-                borderBottom: '1px solid #ccc',
-                minHeight: 60,
-              }}
-            />
+            {/* Writing line — close to Rx, more space below */}
+            <div style={{ marginTop: 4, borderTop: '1px solid #aaa', minHeight: 96 }} />
           </div>
         </div>
 
         {/* ── FOOTER ── */}
-        <div
-          style={{
-            background: '#7a7a50',
-            color: '#fff',
-            padding: '9px 20px 7px',
-            marginTop: 'auto',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: 11,
-            }}
-          >
+        <div style={{ background: '#7a7a50', color: '#fff', padding: '9px 20px 7px', marginTop: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
             <div>
-              <div style={{ fontWeight: 700, letterSpacing: '0.2px' }}>
-                NH-44, NEW COLONY, COURT ROAD PULWAMA
-              </div>
+              <div style={{ fontWeight: 700, letterSpacing: '0.2px' }}>NH-44, NEW COLONY, COURT ROAD PULWAMA</div>
               <div style={{ marginTop: 2 }}>Email: mirintikhab7@gmail.com</div>
             </div>
             <div style={{ fontWeight: 700, fontSize: 12 }}>Mobile: 7006888514</div>
           </div>
-          <div
-            style={{
-              textAlign: 'center',
-              fontSize: 11,
-              marginTop: 5,
-              fontStyle: 'italic',
-              textDecoration: 'underline',
-            }}
-          >
+          <div style={{ textAlign: 'center', fontSize: 11, marginTop: 5, fontStyle: 'italic', textDecoration: 'underline' }}>
             Valid for two visits within 15 days
           </div>
         </div>

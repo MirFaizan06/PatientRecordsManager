@@ -1,6 +1,12 @@
-export function generatePatientId(existingCount: number): string {
-  const padded = String(existingCount + 1).padStart(6, '0')
-  return `PT-${padded}`
+export function generatePatientId(): string {
+  const now = new Date()
+  const yy = String(now.getFullYear()).slice(2)
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  const hex = Array.from({ length: 10 }, () =>
+    Math.floor(Math.random() * 16).toString(16).toUpperCase()
+  ).join('')
+  return `GLCC-${yy}-${mm}-${dd}-${hex}`
 }
 
 export function generateVisitId(): string {
