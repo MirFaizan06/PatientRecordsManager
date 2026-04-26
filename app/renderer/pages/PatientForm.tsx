@@ -34,19 +34,33 @@ function patientToForm(p: Patient): PatientFormData {
   }
 }
 
+function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: 8,
+        background: 'var(--accent-light)', color: 'var(--accent)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+    </div>
+  )
+}
+
 export default function PatientForm({ initialPatient, patientCount, onSave, onBack }: PatientFormProps) {
   const { toast } = useToast()
 
-  // Base state
   const [form, setForm] = useState<PatientFormData>(initialPatient ? patientToForm(initialPatient) : EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<PatientFormData>>({})
   const [saving, setSaving] = useState(false)
-
-  // Print prescription state
   const [rxPatient, setRxPatient] = useState<Patient | null>(null)
   const [showRx, setShowRx] = useState(false)
 
-  // Ctrl+P shortcut — open print modal when a patient was just saved
   useEffect(() => {
     if (!rxPatient) return
     const handler = (e: globalThis.KeyboardEvent) => {
@@ -59,7 +73,6 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     return () => window.removeEventListener('keydown', handler)
   }, [rxPatient])
 
-  // Autocomplete state
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
@@ -70,18 +83,13 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
   const effectiveBase = selectedPatient || initialPatient
   const patientId = effectiveBase?.id ?? generatePatientId()
 
-  // Name suggest hook — only active when no initialPatient, no selection yet, dropdown open
   const suggestEnabled = !isEdit && dropdownOpen && !selectedPatient
-  const { suggestions, loading: suggestLoading, noResults, reset: resetSuggest } = useNameSuggest(
-    form.name,
-    suggestEnabled
-  )
+  const { suggestions, loading: suggestLoading, noResults, reset: resetSuggest } = useNameSuggest(form.name, suggestEnabled)
 
   useEffect(() => {
     if (initialPatient) setForm(patientToForm(initialPatient))
   }, [initialPatient])
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -98,18 +106,15 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     setErrors(prev => ({ ...prev, [key]: undefined }))
   }
 
-  // Called only when user manually types in name field
   const handleNameChange = (val: string) => {
     set('name', val)
-    setSelectedPatient(null)  // clear prior autocomplete selection
+    setSelectedPatient(null)
     setActiveIdx(-1)
     setDropdownOpen(val.trim().length >= 3)
   }
 
-  // Keyboard navigation in dropdown
   const handleNameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (!dropdownOpen || (!suggestLoading && suggestions.length === 0 && !noResults)) return
-
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setActiveIdx(prev => (prev < suggestions.length - 1 ? prev + 1 : 0))
@@ -132,7 +137,6 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     setDropdownOpen(false)
     setActiveIdx(-1)
     resetSuggest()
-    // Focus next field
     setTimeout(() => {
       const ageInput = document.getElementById('form-age')
       if (ageInput) (ageInput as HTMLInputElement).focus()
@@ -180,7 +184,6 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
         : 'New patient added successfully.'
       toast(msg, 'success')
       setRxPatient(patient)
-
       if (!isEdit) {
         setForm(EMPTY_FORM)
         setErrors({})
@@ -206,43 +209,75 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
 
   return (
     <motion.div
-      className="page-container"
       variants={pageTransition}
       initial="hidden"
       animate="visible"
       exit="exit"
-      style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+      style={{ padding: '28px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20, height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}
     >
-      <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <h1 className="page-title">
-            {isEdit ? 'Add Visit' : selectedPatient ? 'Add Visit — Returning Patient' : 'Add Patient'}
-          </h1>
-          <p className="page-subtitle">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: 'linear-gradient(135deg, #1B5E60, #22757a)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(27,94,96,0.3)',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px', margin: 0 }}>
+              {isEdit ? 'Add Visit' : selectedPatient ? 'Returning Patient' : 'New Patient'}
+            </h1>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 46, lineHeight: 1.4 }}>
             {isEdit
-              ? `Updating records for ${initialPatient?.name}`
+              ? `Adding a visit for ${initialPatient?.name}`
               : selectedPatient
-              ? `${selectedPatient.visits.length} previous visit${selectedPatient.visits.length !== 1 ? 's' : ''} on record · ID: ${selectedPatient.id}`
+              ? `${selectedPatient.visits.length} previous visit${selectedPatient.visits.length !== 1 ? 's' : ''} · ID: ${selectedPatient.id}`
               : 'Register a new patient or find an existing one by name'}
           </p>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={onBack}>← Back</button>
+        <button
+          onClick={onBack}
+          style={{
+            background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+            borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 600,
+            color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+            flexShrink: 0,
+          }}
+        >
+          ← Back
+        </button>
       </div>
 
       {/* ── Print Prescription Banner ── */}
       {rxPatient && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: '#e8f5f5', border: '1.5px solid #1B5E60',
-          borderRadius: 'var(--radius-md)', padding: '12px 18px',
-          flexShrink: 0,
-        }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E60' }}>
-              {rxPatient.name} — saved successfully
+        <motion.div
+          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, rgba(27,94,96,0.08), rgba(27,94,96,0.04))',
+            border: '1.5px solid rgba(27,94,96,0.3)',
+            borderRadius: 14, padding: '14px 20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: 'rgba(27,94,96,0.1)', color: '#1B5E60',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+              </svg>
             </div>
-            <div style={{ fontSize: 11, color: '#2a7a7a', marginTop: 2 }}>
-              Print the prescription now or dismiss and print later from Search · Shortcut: Ctrl+P
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E60' }}>{rxPatient.name} — saved</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Print prescription or dismiss · Shortcut: Ctrl+P</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -250,54 +285,57 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
               onClick={() => setShowRx(true)}
               style={{
                 background: '#1B5E60', color: '#fff', border: 'none',
-                borderRadius: 6, padding: '8px 18px', fontSize: 12,
+                borderRadius: 8, padding: '8px 16px', fontSize: 12,
                 fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6,
-                boxShadow: '0 1px 4px rgba(27,94,96,0.35)',
+                boxShadow: '0 2px 8px rgba(27,94,96,0.4)',
               }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-              </svg>
-              Print Prescription
+              Print Rx
             </button>
             <button
               onClick={() => setRxPatient(null)}
               style={{
-                background: 'transparent', color: '#555',
-                border: '1px solid #aac5c5', borderRadius: 6,
+                background: 'transparent', color: 'var(--text-muted)',
+                border: '1px solid var(--border)', borderRadius: 8,
                 padding: '8px 12px', fontSize: 12, cursor: 'pointer',
               }}
             >
               Dismiss
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {showRx && rxPatient && (
-        <PrescriptionModal
-          patient={rxPatient}
-          onClose={() => setShowRx(false)}
-        />
+        <PrescriptionModal patient={rxPatient} onClose={() => setShowRx(false)} />
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, flex: 1 }}>
-        {/* Left — Form */}
-        <div className="card" style={{ height: 'fit-content' }}>
-          <div className="card-header">
-            <span className="card-title">Patient Information</span>
-            {(isEdit || selectedPatient) && (
-              <span className="badge badge-blue">{patientId}</span>
-            )}
-          </div>
-          <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* ── Main Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
 
-            {/* Patient ID field — shown only for completely new patients */}
+        {/* Form Card */}
+        <div style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border)',
+          borderRadius: 18, boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
+        }}>
+          {/* Card top accent */}
+          <div style={{ height: 3, background: 'linear-gradient(90deg, #1B5E60, #22757a, #2d7a4f)' }} />
+
+          <div style={{ padding: '24px 24px 28px' }}>
+
+            {/* Patient ID — new only */}
             {!isEdit && !selectedPatient && (
-              <div className="form-group">
-                <label className="form-label">Patient ID (auto-generated)</label>
-                <input className="input" value={patientId} readOnly />
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'var(--accent-subtle)', borderRadius: 8,
+                padding: '8px 12px', marginBottom: 24,
+                border: '1px solid var(--accent-light)',
+              }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                </svg>
+                <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600 }}>Auto ID:</span>
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{patientId}</span>
               </div>
             )}
 
@@ -306,20 +344,20 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 background: 'var(--accent-subtle)', border: '1px solid var(--accent-light)',
-                borderRadius: 'var(--radius-md)', padding: '9px 12px',
+                borderRadius: 10, padding: '10px 14px', marginBottom: 24,
               }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block' }}>
                     Returning Patient
                   </span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    Form auto-filled from existing record — update any changed values
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1, display: 'block' }}>
+                    Form auto-filled — update any changed values
                   </span>
                 </div>
                 <button
                   className="btn btn-ghost btn-icon btn-sm"
                   onClick={clearSelection}
-                  title="Clear and start fresh"
+                  title="Clear selection"
                   style={{ flexShrink: 0 }}
                 >
                   <XIcon size={13} />
@@ -327,156 +365,203 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
               </div>
             )}
 
-            {/* Name field with autocomplete */}
-            <div className="form-group" ref={wrapperRef} style={{ position: 'relative' }}>
-              <label className="form-label required">Full Name</label>
-              <input
-                ref={nameInputRef}
-                className={`input${errors.name ? ' error' : ''}`}
-                value={form.name}
-                onChange={e => handleNameChange(e.target.value)}
-                onKeyDown={handleNameKeyDown}
-                onFocus={() => {
-                  if (!isEdit && !selectedPatient && form.name.trim().length >= 3) {
-                    setDropdownOpen(true)
-                  }
-                }}
-                placeholder="e.g. Muhammad Ali"
-                autoComplete="off"
+            {/* Section: Personal Info */}
+            <SectionHeader
+              label="Personal Information"
+              icon={
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              }
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
+              {/* Name with autocomplete */}
+              <div className="form-group" ref={wrapperRef} style={{ position: 'relative' }}>
+                <label className="form-label required">Full Name</label>
+                <input
+                  ref={nameInputRef}
+                  className={`input${errors.name ? ' error' : ''}`}
+                  value={form.name}
+                  onChange={e => handleNameChange(e.target.value)}
+                  onKeyDown={handleNameKeyDown}
+                  onFocus={() => {
+                    if (!isEdit && !selectedPatient && form.name.trim().length >= 3) setDropdownOpen(true)
+                  }}
+                  placeholder="e.g. Muhammad Ali"
+                  autoComplete="off"
+                />
+                {errors.name && <span className="form-error">{errors.name}</span>}
+                {showDropdown && (
+                  <NameSuggestDropdown
+                    suggestions={suggestions}
+                    loading={suggestLoading}
+                    noResults={noResults}
+                    query={form.name}
+                    activeIdx={activeIdx}
+                    onSelect={handleSelectSuggestion}
+                  />
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <Input
+                  id="form-age"
+                  label="Age" required type="number"
+                  value={form.age}
+                  onChange={e => set('age', e.target.value)}
+                  error={errors.age}
+                  placeholder="e.g. 35"
+                  min={0} max={150}
+                />
+
+                <div className="form-group">
+                  <label className="form-label required">Sex</label>
+                  <select
+                    className="select"
+                    value={form.sex}
+                    onChange={e => set('sex', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">Select sex</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {errors.sex && <span className="form-error">{errors.sex}</span>}
+                </div>
+              </div>
+
+              <Input
+                label="Address" required
+                value={form.address}
+                onChange={e => set('address', e.target.value)}
+                error={errors.address}
+                placeholder="e.g. House 5, Street 3, Lahore"
               />
-              {errors.name && <span className="form-error">{errors.name}</span>}
 
-              {/* Dropdown */}
-              {showDropdown && (
-                <NameSuggestDropdown
-                  suggestions={suggestions}
-                  loading={suggestLoading}
-                  noResults={noResults}
-                  query={form.name}
-                  activeIdx={activeIdx}
-                  onSelect={handleSelectSuggestion}
-                />
-              )}
+              <Input
+                label="Phone Number (optional)"
+                value={form.phone}
+                onChange={e => set('phone', e.target.value)}
+                error={errors.phone}
+                placeholder="e.g. 03001234567"
+                type="tel"
+              />
             </div>
 
-            <Input
-              id="form-age"
-              label="Age" required type="number"
-              value={form.age}
-              onChange={e => set('age', e.target.value)}
-              error={errors.age}
-              placeholder="e.g. 35"
-              min={0} max={150}
+            {/* Section: Physical Details */}
+            <SectionHeader
+              label="Physical Details"
+              icon={
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 2.05V4.06c3.95.49 7 3.85 7 7.94 0 3.21-1.81 6.03-4.5 7.56l-1.5-2.6c1.84-1.07 3-3.03 3-5 0-3.31-2.69-6-6-6-3.31 0-6 2.69-6 6 0 1.97 1.16 3.93 3 5l-1.5 2.6C4.81 18.03 3 15.21 3 12c0-4.09 3.05-7.45 7-7.94V2.05c-5.44.5-9 4.71-9 9.95 0 5.52 4.48 10 10 10s10-4.48 10-10c0-5.24-3.56-9.45-9-9.95zM11 2v10l5.25-5.25-1.41-1.41L12 8.17V2h-1z"/>
+                </svg>
+              }
             />
 
-            <div className="form-group">
-              <label className="form-label required">Sex</label>
-              <select
-                className="select"
-                value={form.sex}
-                onChange={e => set('sex', e.target.value)}
-                style={{ width: '100%' }}
-              >
-                <option value="">Select sex</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-              {errors.sex && <span className="form-error">{errors.sex}</span>}
-            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                {/* Height */}
+                <div className="form-group">
+                  <label className="form-label required">Height</label>
+                  <div className="input-group">
+                    <input
+                      className={`input${errors.heightValue ? ' error' : ''}`}
+                      value={form.heightValue}
+                      onChange={e => set('heightValue', e.target.value)}
+                      placeholder="Value"
+                      type="number" min={0}
+                    />
+                    <select
+                      className="select"
+                      value={form.heightUnit}
+                      onChange={e => set('heightUnit', e.target.value)}
+                      style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', borderLeft: 'none', width: 72 }}
+                    >
+                      <option value="cm">cm</option>
+                      <option value="ft">ft</option>
+                    </select>
+                  </div>
+                  {errors.heightValue && <span className="form-error">{errors.heightValue}</span>}
+                </div>
 
-            <Input
-              label="Address" required
-              value={form.address}
-              onChange={e => set('address', e.target.value)}
-              error={errors.address}
-              placeholder="e.g. House 5, Street 3, Lahore"
-            />
-
-            <Input
-              label="Phone Number (optional)"
-              value={form.phone}
-              onChange={e => set('phone', e.target.value)}
-              error={errors.phone}
-              placeholder="e.g. 03001234567"
-              type="tel"
-            />
-
-            {/* Height */}
-            <div className="form-group">
-              <label className="form-label required">Height</label>
-              <div className="input-group">
-                <input
-                  className={`input${errors.heightValue ? ' error' : ''}`}
-                  value={form.heightValue}
-                  onChange={e => set('heightValue', e.target.value)}
-                  placeholder="Value"
-                  type="number" min={0}
-                />
-                <select
-                  className="select"
-                  value={form.heightUnit}
-                  onChange={e => set('heightUnit', e.target.value)}
-                  style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', borderLeft: 'none', width: 80 }}
-                >
-                  <option value="cm">cm</option>
-                  <option value="ft">ft</option>
-                </select>
+                {/* Weight */}
+                <div className="form-group">
+                  <label className="form-label required">Weight</label>
+                  <div className="input-group">
+                    <input
+                      className={`input${errors.weightValue ? ' error' : ''}`}
+                      value={form.weightValue}
+                      onChange={e => set('weightValue', e.target.value)}
+                      placeholder="Value"
+                      type="number" min={0}
+                    />
+                    <select
+                      className="select"
+                      value={form.weightUnit}
+                      onChange={e => set('weightUnit', e.target.value)}
+                      style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', borderLeft: 'none', width: 72 }}
+                    >
+                      <option value="kg">kg</option>
+                      <option value="lbs">lbs</option>
+                    </select>
+                  </div>
+                  {errors.weightValue && <span className="form-error">{errors.weightValue}</span>}
+                </div>
               </div>
-              {errors.heightValue && <span className="form-error">{errors.heightValue}</span>}
-            </div>
 
-            {/* Weight */}
-            <div className="form-group">
-              <label className="form-label required">Weight</label>
-              <div className="input-group">
-                <input
-                  className={`input${errors.weightValue ? ' error' : ''}`}
-                  value={form.weightValue}
-                  onChange={e => set('weightValue', e.target.value)}
-                  placeholder="Value"
-                  type="number" min={0}
-                />
-                <select
-                  className="select"
-                  value={form.weightUnit}
-                  onChange={e => set('weightUnit', e.target.value)}
-                  style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', borderLeft: 'none', width: 80 }}
-                >
-                  <option value="kg">kg</option>
-                  <option value="lbs">lbs</option>
-                </select>
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <Button onClick={handleSave} loading={saving} style={{ flex: 1, justifyContent: 'center' }}>
+                  {isEdit || selectedPatient ? '+ Add Visit' : 'Save Patient'}
+                </Button>
+                {!isEdit && (
+                  <Button variant="secondary" onClick={handleClear}>Clear</Button>
+                )}
               </div>
-              {errors.weightValue && <span className="form-error">{errors.weightValue}</span>}
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-              <Button onClick={handleSave} loading={saving} style={{ flex: 1, justifyContent: 'center' }}>
-                {isEdit || selectedPatient ? '+ Add Visit' : 'Save Patient'}
-              </Button>
-              {!isEdit && (
-                <Button variant="secondary" onClick={handleClear}>Clear</Button>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Right — Previous Visits */}
-        <div className="card" style={{ height: 'fit-content', maxHeight: 500, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div className="card-header">
-            <span className="card-title">Visit History</span>
-            {(isEdit || selectedPatient) && (
-              <span className="badge badge-gray">{effectiveBase?.visits.length ?? 0}</span>
-            )}
+        {/* Visit History Card */}
+        <div style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border)',
+          borderRadius: 18, boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
+        }}>
+          <div style={{ height: 3, background: 'var(--border)' }} />
+          <div style={{ padding: '18px 18px 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 26, height: 26, borderRadius: 7,
+                  background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <ClipboardIcon size={13} />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Visit History</span>
+              </div>
+              {(isEdit || selectedPatient) && (
+                <span style={{
+                  background: 'var(--bg-tertiary)', color: 'var(--text-secondary)',
+                  fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 100,
+                }}>
+                  {effectiveBase?.visits.length ?? 0}
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
+
+          <div style={{ maxHeight: 380, overflowY: 'auto', padding: '0 18px 18px' }}>
             {!isEdit && !selectedPatient ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                <div style={{ marginBottom: 8, opacity: 0.4 }}><ClipboardIcon size={28} /></div>
-                New patient — no previous visits
+              <div style={{ textAlign: 'center', padding: '28px 12px', color: 'var(--text-muted)' }}>
+                <div style={{ marginBottom: 10, opacity: 0.3 }}><ClipboardIcon size={32} /></div>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>No visits yet</div>
+                <div style={{ fontSize: 11 }}>New patient record</div>
               </div>
             ) : (effectiveBase?.visits.length ?? 0) === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+              <div style={{ textAlign: 'center', padding: '28px 12px', color: 'var(--text-muted)', fontSize: 12 }}>
                 No visits recorded yet
               </div>
             ) : (
@@ -485,13 +570,13 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
                   <div key={v.visitId} style={{
                     padding: '10px 12px',
                     background: i === 0 ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 10,
                     border: `1px solid ${i === 0 ? 'var(--accent-light)' : 'var(--border-subtle)'}`,
                   }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: i === 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
-                      {i === 0 ? 'Latest visit' : `Visit ${(effectiveBase!.visits.length) - i}`}
+                    <div style={{ fontSize: 10, fontWeight: 700, color: i === 0 ? 'var(--accent)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 3 }}>
+                      {i === 0 ? '● Latest' : `Visit ${(effectiveBase!.visits.length) - i}`}
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-primary)', marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-primary)' }}>
                       {v.timestamp}
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { staggerContainer, staggerItem } from '../animations/fade'
 import { pageTransition } from '../animations/slide'
 import { useToast } from '../components/Toast'
 import Button from '../components/Button'
@@ -8,6 +9,43 @@ import { SaveIcon, LockIcon, InfoIcon, EyeIcon, EditIcon, CameraIcon, FaceIcon }
 import FaceEnrollModal from '../components/FaceEnrollModal'
 import type { ClinicInfo } from '../../shared/types/clinicInfo'
 import { DEFAULT_CLINIC_INFO } from '../../shared/types/clinicInfo'
+
+function SettingCard({ icon, title, children, action }: {
+  icon: React.ReactNode
+  title: string
+  children: React.ReactNode
+  action?: React.ReactNode
+}) {
+  return (
+    <motion.div
+      variants={staggerItem}
+      style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border)',
+        borderRadius: 18, boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
+      }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 22px', borderBottom: '1px solid var(--border)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: 8,
+            background: 'var(--accent-light)', color: 'var(--accent)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            {icon}
+          </div>
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</span>
+        </div>
+        {action}
+      </div>
+      <div style={{ padding: '20px 22px' }}>
+        {children}
+      </div>
+    </motion.div>
+  )
+}
 
 export default function Settings() {
   const { toast } = useToast()
@@ -91,203 +129,232 @@ export default function Settings() {
 
   return (
     <motion.div
-      className="page-container"
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+      style={{ padding: '28px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}
     >
-      <div className="page-header">
-        <h1 className="page-title">Settings</h1>
-        <p className="page-subtitle">Configure backup, security, and clinic preferences</p>
-      </div>
-
-      {/* Backup Settings */}
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <SaveIcon size={16} /> Backup Settings
-          </span>
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: 'linear-gradient(135deg, #1B5E60, #22757a)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(27,94,96,0.3)',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+          </svg>
         </div>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{
-            background: 'var(--info-bg)', color: 'var(--info)',
-            borderRadius: 'var(--radius-md)', padding: '10px 14px',
-            fontSize: 'var(--font-size-sm)', lineHeight: 1.5,
-            display: 'flex', gap: 8, alignItems: 'flex-start',
-          }}>
-            <InfoIcon size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-            <span>Backup creates a compressed safe copy of your records (ZIP file). Backups run automatically every 7 days.</span>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Backup Folder</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                className="input" value={backupFolder || 'No folder selected'} readOnly
-                style={{ flex: 1, color: backupFolder ? 'var(--text-primary)' : 'var(--text-muted)' }}
-              />
-              <Button variant="secondary" onClick={handleSelectFolder}>Browse…</Button>
-            </div>
-          </div>
-          {lastBackup && (
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-              Last backup: {new Date(lastBackup).toLocaleString()}
-            </div>
-          )}
-          <Button onClick={handleBackup} loading={backupLoading} style={{ alignSelf: 'flex-start' }}>
-            Create Backup Now
-          </Button>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px', margin: 0 }}>Settings</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Configure backup, security, and clinic preferences</p>
         </div>
       </div>
 
-      {/* Change Password */}
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <LockIcon size={16} /> Change Password
-          </span>
-        </div>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 400 }}>
-          <Input label="Current Password" type="password" value={oldPass}
-            onChange={e => { setOldPass(e.target.value); setPassError('') }} placeholder="Enter current password" />
-          <Input label="New Password" type="password" value={newPass}
-            onChange={e => { setNewPass(e.target.value); setPassError('') }} placeholder="Enter new password" />
-          <Input label="Confirm New Password" type="password" value={confirmPass}
-            onChange={e => { setConfirmPass(e.target.value); setPassError('') }} placeholder="Confirm new password" />
-          {passError && <span className="form-error">{passError}</span>}
-          <Button onClick={handleChangePass} loading={passLoading} style={{ alignSelf: 'flex-start' }}>
-            Update Password
-          </Button>
-        </div>
-      </div>
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Face Unlock */}
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FaceIcon size={16} /> Face Unlock
-          </span>
-        </div>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '12px 16px', borderRadius: 'var(--radius-md)',
-            background: faceEnrolled ? 'var(--success-bg)' : 'var(--bg-tertiary)',
-            border: `1px solid ${faceEnrolled ? 'var(--success)' : 'var(--border)'}`,
-          }}>
-            <CameraIcon size={18} style={{ color: faceEnrolled ? 'var(--success)' : 'var(--text-muted)', flexShrink: 0 }} />
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: faceEnrolled ? 'var(--success)' : 'var(--text-primary)' }}>
-                {faceEnrolled ? 'Face enrolled' : 'No face enrolled'}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginTop: 2 }}>
-                {faceEnrolled
-                  ? 'Face unlock is active on the login screen.'
-                  : 'Enroll your face to enable quick login without typing a password.'}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Button
-              onClick={() => setShowFaceEnroll(true)}
-              style={{ background: '#1B5E60', color: '#fff', borderColor: '#1B5E60' }}
-            >
-              <CameraIcon size={14} />
-              {faceEnrolled ? 'Re-enroll Face' : 'Enroll Face'}
-            </Button>
-            {faceEnrolled && (
-              <Button variant="secondary" onClick={handleClearFace}>
-                Remove Face Data
-              </Button>
-            )}
-          </div>
-          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-            Tip: Ensure good lighting and hold your face steady for best results. The password option is always available alongside face unlock.
-          </div>
-        </div>
-      </div>
-
-      {/* Prescription / Clinic Info Editor */}
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <EditIcon size={16} /> Prescription / Clinic Info
-          </span>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowPreview(p => !p)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-          >
-            <EyeIcon size={13} />
-            {showPreview ? 'Hide Preview' : 'Preview Header'}
-          </button>
-        </div>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {showPreview && (
+        {/* Backup */}
+        <SettingCard
+          icon={<SaveIcon size={15} />}
+          title="Backup Settings"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{
-              border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-              padding: 16, background: '#fff', fontFamily: "'Times New Roman', Times, serif",
-              marginBottom: 4,
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              background: 'var(--accent-subtle)', border: '1px solid var(--accent-light)',
+              borderRadius: 10, padding: '10px 14px',
+              fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5,
             }}>
-              <div style={{ borderTop: '1px dotted #bbb', marginBottom: 10 }} />
-              <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: '#1B5E60', letterSpacing: '0.5px' }}>{clinic.name}</div>
-                <div style={{ fontSize: 11, fontStyle: 'italic', color: '#444' }}>{clinic.subtitle}</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1B5E60', paddingTop: 8, fontSize: 11 }}>
-                <div>
-                  <div style={{ fontWeight: 700, color: '#a00000' }}>{clinic.doctorName}</div>
-                  <div style={{ color: '#1B5E60' }}>{clinic.qualifications}</div>
-                  <div>{clinic.title}</div>
-                  <div>{clinic.memberships}</div>
-                </div>
-                <div style={{ textAlign: 'right', color: '#555' }}>
-                  <div>{clinic.address}</div>
-                  <div>📞 {clinic.phone}</div>
-                  <div>✉ {clinic.email}</div>
-                </div>
-              </div>
-              <div style={{ background: '#7a7a50', color: '#fff', padding: '6px 10px', marginTop: 8, borderRadius: 4, fontSize: 10, textAlign: 'center', fontStyle: 'italic', textDecoration: 'underline' }}>
-                {clinic.validity}
+              <InfoIcon size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--accent)' }} />
+              <span>Backup creates a compressed ZIP copy of all records. Auto-backup runs every 7 days on launch.</span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Backup Folder</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  className="input" value={backupFolder || 'No folder selected'} readOnly
+                  style={{ flex: 1, color: backupFolder ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 12 }}
+                />
+                <Button variant="secondary" onClick={handleSelectFolder}>Browse…</Button>
               </div>
             </div>
-          )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {([
-              ['Clinic Name', 'name'],
-              ['Subtitle', 'subtitle'],
-              ['Doctor Name', 'doctorName'],
-              ['Qualifications', 'qualifications'],
-              ['Title', 'title'],
-              ['Memberships', 'memberships'],
-              ['Address', 'address'],
-              ['Email', 'email'],
-              ['Phone', 'phone'],
-              ['Validity Note', 'validity'],
-            ] as [string, keyof ClinicInfo][]).map(([label, key]) => (
-              <div className="form-group" key={key} style={key === 'address' || key === 'qualifications' ? { gridColumn: '1 / -1' } : {}}>
-                <label className="form-label">{label}</label>
-                <input
-                  className="input"
-                  value={clinic[key]}
-                  onChange={e => setClinic(prev => ({ ...prev, [key]: e.target.value }))}
-                  placeholder={label}
-                />
+            {lastBackup && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Last backup: {new Date(lastBackup).toLocaleString()}
               </div>
-            ))}
-          </div>
+            )}
 
-          <Button
-            onClick={handleSaveClinic}
-            loading={clinicLoading}
-            style={{ alignSelf: 'flex-start', background: '#1B5E60', color: '#fff', borderColor: '#1B5E60' }}
-          >
-            <SaveIcon size={14} />
-            Save Clinic Info
-          </Button>
-        </div>
-      </div>
+            <Button onClick={handleBackup} loading={backupLoading} style={{ alignSelf: 'flex-start' }}>
+              <SaveIcon size={13} /> Create Backup Now
+            </Button>
+          </div>
+        </SettingCard>
+
+        {/* Password */}
+        <SettingCard
+          icon={<LockIcon size={15} />}
+          title="Change Password"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 380 }}>
+            <Input label="Current Password" type="password" value={oldPass}
+              onChange={e => { setOldPass(e.target.value); setPassError('') }} placeholder="Enter current password" />
+            <Input label="New Password" type="password" value={newPass}
+              onChange={e => { setNewPass(e.target.value); setPassError('') }} placeholder="Enter new password" />
+            <Input label="Confirm New Password" type="password" value={confirmPass}
+              onChange={e => { setConfirmPass(e.target.value); setPassError('') }} placeholder="Confirm new password" />
+            {passError && (
+              <div style={{
+                background: 'var(--error-bg)', border: '1px solid var(--error)',
+                borderRadius: 8, padding: '8px 12px', fontSize: 12, color: 'var(--error)',
+              }}>
+                {passError}
+              </div>
+            )}
+            <Button onClick={handleChangePass} loading={passLoading} style={{ alignSelf: 'flex-start' }}>
+              Update Password
+            </Button>
+          </div>
+        </SettingCard>
+
+        {/* Face Unlock */}
+        <SettingCard
+          icon={<FaceIcon size={15} />}
+          title="Face Unlock"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '14px 16px', borderRadius: 12,
+              background: faceEnrolled ? 'var(--success-bg)' : 'var(--bg-tertiary)',
+              border: `1px solid ${faceEnrolled ? 'var(--success)' : 'var(--border)'}`,
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                background: faceEnrolled ? 'rgba(0,150,80,0.15)' : 'var(--bg-secondary)',
+                border: `1px solid ${faceEnrolled ? 'var(--success)' : 'var(--border)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <CameraIcon size={18} style={{ color: faceEnrolled ? 'var(--success)' : 'var(--text-muted)' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: faceEnrolled ? 'var(--success)' : 'var(--text-primary)', marginBottom: 2 }}>
+                  {faceEnrolled ? 'Face enrolled & active' : 'No face enrolled'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  {faceEnrolled
+                    ? 'Face unlock is active on the login screen.'
+                    : 'Enroll your face to enable quick login without typing a password.'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setShowFaceEnroll(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#1B5E60', color: '#fff', border: 'none',
+                  borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700,
+                  cursor: 'pointer', boxShadow: '0 2px 8px rgba(27,94,96,0.3)',
+                }}
+              >
+                <CameraIcon size={13} />
+                {faceEnrolled ? 'Re-enroll Face' : 'Enroll Face'}
+              </button>
+              {faceEnrolled && (
+                <Button variant="secondary" onClick={handleClearFace}>Remove Face Data</Button>
+              )}
+            </div>
+
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Tip: Ensure good lighting and hold your face steady for best results. Password login is always available alongside face unlock.
+            </div>
+          </div>
+        </SettingCard>
+
+        {/* Clinic Info */}
+        <SettingCard
+          icon={<EditIcon size={15} />}
+          title="Prescription / Clinic Info"
+          action={
+            <button
+              onClick={() => setShowPreview(p => !p)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'var(--bg-tertiary)', color: 'var(--text-secondary)',
+                border: '1px solid var(--border)', borderRadius: 8,
+                padding: '6px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              <EyeIcon size={12} />
+              {showPreview ? 'Hide Preview' : 'Preview'}
+            </button>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {showPreview && (
+              <div style={{
+                border: '1px solid var(--border)', borderRadius: 10,
+                padding: 16, background: '#fff', fontFamily: "'Times New Roman', Times, serif",
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: 8 }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: '#1B5E60', letterSpacing: '0.5px' }}>{clinic.name}</div>
+                  <div style={{ fontSize: 11, fontStyle: 'italic', color: '#444' }}>{clinic.subtitle}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1B5E60', paddingTop: 8, fontSize: 11 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#a00000' }}>{clinic.doctorName}</div>
+                    <div style={{ color: '#1B5E60' }}>{clinic.qualifications}</div>
+                    <div>{clinic.title}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', color: '#555' }}>
+                    <div>{clinic.address}</div>
+                    <div>📞 {clinic.phone}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {([
+                ['Clinic Name', 'name'],
+                ['Subtitle', 'subtitle'],
+                ['Doctor Name', 'doctorName'],
+                ['Qualifications', 'qualifications'],
+                ['Title', 'title'],
+                ['Memberships', 'memberships'],
+                ['Address', 'address'],
+                ['Email', 'email'],
+                ['Phone', 'phone'],
+                ['Validity Note', 'validity'],
+              ] as [string, keyof ClinicInfo][]).map(([label, key]) => (
+                <div className="form-group" key={key} style={key === 'address' || key === 'qualifications' ? { gridColumn: '1 / -1' } : {}}>
+                  <label className="form-label">{label}</label>
+                  <input
+                    className="input"
+                    value={clinic[key]}
+                    onChange={e => setClinic(prev => ({ ...prev, [key]: e.target.value }))}
+                    placeholder={label}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <Button
+              onClick={handleSaveClinic}
+              loading={clinicLoading}
+              style={{ alignSelf: 'flex-start', background: '#1B5E60', color: '#fff' }}
+            >
+              <SaveIcon size={13} /> Save Clinic Info
+            </Button>
+          </div>
+        </SettingCard>
+
+      </motion.div>
 
       {showFaceEnroll && (
         <FaceEnrollModal

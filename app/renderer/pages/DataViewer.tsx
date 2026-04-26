@@ -30,24 +30,71 @@ export default function DataViewer({ patients, onRefresh, loading }: DataViewerP
     }
   }
 
+  const totalVisits = patients.reduce((sum, p) => sum + p.visits.length, 0)
+
   return (
     <motion.div
-      className="page-container"
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%', overflow: 'hidden' }}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
     >
-      <div className="page-header" style={{ flexShrink: 0 }}>
-        <h1 className="page-title">Patient Records</h1>
-        <p className="page-subtitle">Complete visit history for all patients</p>
+      {/* ── Header strip ── */}
+      <div style={{
+        padding: '20px 28px 0',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: 'linear-gradient(135deg, #1B5E60, #22757a)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(27,94,96,0.3)', flexShrink: 0,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18M9 21V9"/>
+              </svg>
+            </div>
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
+                Patient Records
+              </h1>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+                Complete visit history for all patients
+              </p>
+            </div>
+          </div>
+
+          {/* Stats pills */}
+          {!loading && patients.length > 0 && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[
+                { label: 'Patients', value: patients.length },
+                { label: 'Visits', value: totalVisits },
+                { label: 'Showing', value: rows.length },
+              ].map(stat => (
+                <div key={stat.label} style={{
+                  background: 'var(--bg-card)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '7px 14px', textAlign: 'center',
+                  boxShadow: 'var(--shadow-xs)',
+                }}>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2, fontWeight: 500 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* ── Table ── */}
       <motion.div
         variants={tableContainerVariants}
         initial="hidden"
         animate="visible"
-        style={{ flex: 1, minHeight: 0 }}
+        style={{ flex: 1, minHeight: 0, padding: '0 28px 20px' }}
       >
         <DataTable
           rows={rows}
