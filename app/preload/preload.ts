@@ -42,5 +42,26 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('export:csv'),
 
   getVersion: () =>
-    ipcRenderer.invoke('app:get-version')
+    ipcRenderer.invoke('app:get-version'),
+
+  getClinicInfo: () =>
+    ipcRenderer.invoke('clinic:get-info'),
+
+  saveClinicInfo: (info: unknown) =>
+    ipcRenderer.invoke('clinic:save-info', info),
+
+  getFaceDescriptor: () =>
+    ipcRenderer.invoke('face:get-descriptor'),
+
+  saveFaceDescriptor: (descriptor: number[]) =>
+    ipcRenderer.invoke('face:save-descriptor', descriptor),
+
+  clearFaceDescriptor: () =>
+    ipcRenderer.invoke('face:clear-descriptor'),
+
+  isFaceEnrolled: () =>
+    ipcRenderer.invoke('face:is-enrolled'),
+
+  faceLogin: () =>
+    ipcRenderer.invoke('auth:face-login'),
 })

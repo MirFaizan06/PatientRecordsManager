@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import type { Patient } from '../shared/types/patient'
+import { type ClinicInfo, DEFAULT_CLINIC_INFO } from '../shared/types/clinicInfo'
 
 interface AppData {
   patients: Patient[]
@@ -15,6 +16,8 @@ export interface StorageSettings {
 export class Storage {
   private dataPath: string
   private settingsPath: string
+  private clinicInfoPath: string
+  private faceAuthPath: string
   private data: AppData = { patients: [], version: '1.0.0' }
   private settings: StorageSettings = { backupFolder: '', lastBackup: null }
   private idIndex = new Map<string, Patient>()
@@ -23,6 +26,8 @@ export class Storage {
   constructor(dataPath: string, settingsPath: string) {
     this.dataPath = dataPath
     this.settingsPath = settingsPath
+    this.clinicInfoPath = path.join(path.dirname(dataPath), 'clinicInfo.json')
+    this.faceAuthPath = path.join(path.dirname(dataPath), 'faceAuth.json')
   }
 
   load(): void {
@@ -183,5 +188,40 @@ export class Storage {
     const last = new Date(this.settings.lastBackup).getTime()
     const sevenDays = 7 * 24 * 60 * 60 * 1000
     return Date.now() - last >= sevenDays
+  }
+
+  getClinicInfo(): ClinicInfo {
+    if (fs.existsSync(this.clinicInfoPath)) {
+      try {
+        return { ...DEFAULT_CLINIC_INFO, ...JSON.parse(fs.readFileSync(this.clinicInfoPath, 'utf-8')) }
+      } catch {
+        return { ...DEFAULT_CLINIC_INFO }
+      }
+    }
+    return { ...DEFAULT_CLINIC_INFO }
+  }
+
+  saveClinicInfo(info: ClinicInfo): void {
+    fs.writeFileSync(this.clinicInfoPath, JSON.stringify(info, null, 2), 'utf-8')
+  }
+
+  getFaceDescriptor(): number[] | null {
+    if (fs.existsSync(this.faceAuthPath)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(this.faceAuthPath, 'utf-8'))
+        return data.descriptor ?? null
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  saveFaceDescriptor(descriptor: number[]): void {
+    fs.writeFileSync(this.faceAuthPath, JSON.stringify({ descriptor }), 'utf-8')
+  }
+
+  clearFaceDescriptor(): void {
+    if (fs.existsSync(this.faceAuthPath)) fs.unlinkSync(this.faceAuthPath)
   }
 }

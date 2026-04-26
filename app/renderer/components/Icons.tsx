@@ -23,10 +23,20 @@ export const HomeIcon = Ico([
 
 export const PlusIcon = Ico(['M12 5v14', 'M5 12h14'])
 
-export const SearchIcon = Ico([
-  'M11 19A8 8 0 1011 3a8 8 0 010 16z',
-  'M21 21l-4.35-4.35'
-])
+export const SearchIcon = ({ size = 16, className, style, ...rest }: P) => (
+  <svg
+    width={size} height={size} viewBox="0 0 24 24"
+    fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={className} style={style} aria-hidden="true"
+    {...rest}
+  >
+    <circle cx="10.5" cy="10.5" r="7.5" />
+    <line x1="10.5" y1="7.2" x2="10.5" y2="13.8" />
+    <line x1="7.2" y1="10.5" x2="13.8" y2="10.5" />
+    <line x1="16" y1="16" x2="21" y2="21" />
+  </svg>
+)
 
 export const TableIcon = Ico([
   'M3 3h18v18H3z',
@@ -122,3 +132,29 @@ export const AddVisitIcon = Ico([
   'M12 11v6',
   'M9 14h6'
 ])
+
+export const EyeIcon = Ico([
+  'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z',
+  'M12 9a3 3 0 100 6 3 3 0 000-6z'
+])
+
+export const EditIcon = Ico([
+  'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7',
+  'M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z'
+])
+
+export const CameraIcon = Ico([
+  'M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z',
+  'M12 17a4 4 0 100-8 4 4 0 000 8z'
+])
+
+export const FaceIcon = ({ size = 16, className, style, ...rest }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={className} style={style} aria-hidden="true" {...rest}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+    <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="3" />
+    <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="3" />
+  </svg>
+)

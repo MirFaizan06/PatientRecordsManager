@@ -87,4 +87,27 @@ export function registerIpcHandlers(storage: Storage, auth: Auth): void {
   })
 
   ipcMain.handle('app:get-version', () => app.getVersion())
+
+  ipcMain.handle('clinic:get-info', () => storage.getClinicInfo())
+
+  ipcMain.handle('clinic:save-info', (_, info) => {
+    storage.saveClinicInfo(info)
+    return { success: true }
+  })
+
+  ipcMain.handle('face:get-descriptor', () => storage.getFaceDescriptor())
+
+  ipcMain.handle('face:save-descriptor', (_, descriptor: number[]) => {
+    storage.saveFaceDescriptor(descriptor)
+    return { success: true }
+  })
+
+  ipcMain.handle('face:clear-descriptor', () => {
+    storage.clearFaceDescriptor()
+    return { success: true }
+  })
+
+  ipcMain.handle('face:is-enrolled', () => storage.getFaceDescriptor() !== null)
+
+  ipcMain.handle('auth:face-login', () => ({ success: true }))
 }

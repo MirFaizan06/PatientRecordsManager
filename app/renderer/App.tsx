@@ -43,7 +43,7 @@ function SplashScreen() {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'linear-gradient(135deg, #0f1e3c 0%, #1a3a6e 50%, #0f2d5a 100%)',
+      background: 'linear-gradient(135deg, #0a1a10 0%, #1B5E60 50%, #0d2a18 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <motion.div
@@ -58,12 +58,12 @@ function SplashScreen() {
           transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: 72, height: 72, borderRadius: 20,
-            background: 'rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.12)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.25)',
+            border: '1px solid rgba(255,255,255,0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 32, fontWeight: 800, color: '#fff',
-            boxShadow: '0 8px 32px rgba(59,130,246,0.4)'
+            boxShadow: '0 8px 32px rgba(27,94,96,0.5)'
           }}
         >
           P
