@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol } from 'electron'
+import { app, protocol } from 'electron'
 import path from 'path'
 import { createWindow } from './window'
 import { Storage } from './storage'
@@ -8,14 +8,23 @@ import { createBackup } from './backup'
 
 const DEFAULT_PASSWORD = import.meta.env?.MAIN_VITE_DEFAULT_PASSWORD ?? 'admin123'
 
+// Must be called before app.whenReady() for fetch() to work on custom scheme
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { secure: true, standard: true, supportFetchAPI: true, corsEnabled: true } }
+])
+
 app.whenReady().then(async () => {
   protocol.registerFileProtocol('app', (request, callback) => {
     const urlPath = request.url.replace('app://', '')
-    callback({ path: path.join(app.getAppPath(), urlPath) })
+    const base = app.isPackaged
+      ? process.resourcesPath
+      : path.join(app.getAppPath(), 'resources')
+    callback({ path: path.join(base, urlPath) })
   })
-  const userData    = app.getPath('userData')
-  const dataPath    = path.join(userData, 'data.json')
-  const authPath    = path.join(userData, 'auth.json')
+
+  const userData     = app.getPath('userData')
+  const dataPath     = path.join(userData, 'data.json')
+  const authPath     = path.join(userData, 'auth.json')
   const settingsPath = path.join(userData, 'settings.json')
 
   const storage = new Storage(dataPath, settingsPath)
@@ -35,7 +44,7 @@ app.whenReady().then(async () => {
   }
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (app.getAllWindows().length === 0) createWindow()
   })
 })
 

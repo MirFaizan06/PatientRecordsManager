@@ -47,7 +47,7 @@ export default function Auth({ onLogin }: AuthProps) {
       if (!faceapi) { setFaceStatus('unavailable'); setFaceMessage('Face unlock unavailable'); return }
       if (cancelledRef.current) return
 
-      const MODEL_URL = 'app://resources/face-models'
+      const MODEL_URL = 'app://face-models'
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),

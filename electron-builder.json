@@ -9,6 +9,12 @@
   "files": [
     "out/**/*"
   ],
+  "extraResources": [
+    {
+      "from": "resources/face-models",
+      "to": "face-models"
+    }
+  ],
   "win": {
     "icon": "resources/icon.ico",
     "target": [

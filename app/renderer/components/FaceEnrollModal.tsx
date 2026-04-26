@@ -28,7 +28,7 @@ export default function FaceEnrollModal({ onClose, onEnrolled }: Props) {
   async function init() {
     try {
       const faceapi = await import('face-api.js')
-      const MODEL_URL = 'app://resources/face-models'
+      const MODEL_URL = 'app://face-models'
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
