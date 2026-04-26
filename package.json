@@ -10,8 +10,11 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "package": "npm run build && electron-builder",
-    "package:win": "npm run build && electron-builder --win --x64"
+    "package": "npm run build && npm run cli:all && electron-builder",
+    "package:win": "npm run build && npm run cli:all && electron-builder --win --x64",
+    "cli:build": "esbuild cli/pmr.ts --bundle --platform=node --target=node18 --outfile=cli/pmr.cjs --format=cjs --external:electron",
+    "cli:pkg": "pkg cli/pmr.cjs --target=node18-win-x64 --output=cli/pmr.exe --compress=GZip",
+    "cli:all": "npm run cli:build && npm run cli:pkg"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.2",
@@ -23,6 +26,8 @@
     "electron": "^28.2.1",
     "electron-builder": "^24.9.1",
     "electron-vite": "^2.0.0",
+    "esbuild": "^0.28.0",
+    "pkg": "^5.8.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.12"
   },
@@ -36,5 +41,11 @@
   },
   "build": {
     "extends": "./electron-builder.json"
+  },
+  "pkg": {
+    "assets": [],
+    "targets": [
+      "node18-win-x64"
+    ]
   }
 }
