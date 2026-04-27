@@ -1,4 +1,4 @@
-export function generatePatientId(): string {
+export function generatePatientId(prefix: string = 'PT-'): string {
   const now = new Date()
   const yy = String(now.getFullYear()).slice(2)
   const mm = String(now.getMonth() + 1).padStart(2, '0')
@@ -6,7 +6,7 @@ export function generatePatientId(): string {
   const hex = Array.from({ length: 10 }, () =>
     Math.floor(Math.random() * 16).toString(16).toUpperCase()
   ).join('')
-  return `GLCC-${yy}-${mm}-${dd}-${hex}`
+  return `${prefix}${yy}-${mm}-${dd}-${hex}`
 }
 
 export function generateVisitId(): string {

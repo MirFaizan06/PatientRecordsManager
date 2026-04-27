@@ -63,6 +63,10 @@ export default function Settings() {
   const [clinicLoading, setClinicLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
+  const [idPrefix, setIdPrefix] = useState(DEFAULT_CLINIC_INFO.idPrefix || 'PT-')
+  const [prefixIdeas, setPrefixIdeas] = useState<string[]>([])
+  const [prefixLoading, setPrefixLoading] = useState(false)
+
   const [faceEnrolled, setFaceEnrolled] = useState(false)
   const [showFaceEnroll, setShowFaceEnroll] = useState(false)
 
@@ -71,7 +75,10 @@ export default function Settings() {
       setBackupFolder(s.backupFolder || '')
       setLastBackup(s.lastBackup)
     })
-    window.api.getClinicInfo().then((info: ClinicInfo) => setClinic(info))
+    window.api.getClinicInfo().then((info: ClinicInfo) => {
+      setClinic(info)
+      setIdPrefix(info.idPrefix || 'PT-')
+    })
     window.api.isFaceEnrolled().then((enrolled: boolean) => setFaceEnrolled(enrolled))
   }, [])
 
@@ -125,6 +132,33 @@ export default function Settings() {
     await window.api.clearFaceDescriptor()
     setFaceEnrolled(false)
     toast('Face data removed', 'success')
+  }
+
+  function generatePrefixIdeas(clinicName: string): string[] {
+    const words = clinicName.trim().toUpperCase().replace(/[^A-Z\s]/g, '').split(/\s+/).filter(Boolean)
+    if (words.length === 0) return []
+    const ideas = new Set<string>()
+    const acronym = words.map(w => w[0]).join('')
+    if (acronym.length >= 2) ideas.add(acronym + '-')
+    if (words[0].length >= 3) ideas.add(words[0].slice(0, 3) + '-')
+    if (words[0].length >= 4) ideas.add(words[0].slice(0, 4) + '-')
+    if (words[0].length >= 5) ideas.add(words[0].slice(0, 5) + '-')
+    if (words.length >= 2) ideas.add(words[0].slice(0, 2) + words[1].slice(0, 2) + '-')
+    if (words.length >= 2) ideas.add(words[0][0] + words[words.length - 1].slice(0, 3) + '-')
+    const last = words[words.length - 1]
+    if (last.length >= 3) ideas.add(last.slice(0, 3) + '-')
+    if (acronym.length >= 2) ideas.add(acronym.split('').reverse().join('') + '-')
+    ideas.add((words[0].slice(0, 3) + '1') + '-')
+    ideas.add((words[0].slice(0, 3) + '2') + '-')
+    return Array.from(ideas).slice(0, 10)
+  }
+
+  const handleSavePrefix = async () => {
+    setPrefixLoading(true)
+    await window.api.saveClinicInfo({ ...clinic, idPrefix })
+    setClinic(prev => ({ ...prev, idPrefix }))
+    setPrefixLoading(false)
+    toast('Patient ID prefix saved', 'success')
   }
 
   return (
@@ -273,6 +307,119 @@ export default function Settings() {
             <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
               Tip: Ensure good lighting and hold your face steady for best results. Password login is always available alongside face unlock.
             </div>
+          </div>
+        </SettingCard>
+
+        {/* Patient ID Prefix */}
+        <SettingCard
+          icon={<InfoIcon size={15} />}
+          title="Patient ID Prefix"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            {/* Info callout */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              background: 'var(--accent-subtle)', border: '1px solid var(--accent-light)',
+              borderRadius: 10, padding: '10px 14px',
+              fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6,
+            }}>
+              <InfoIcon size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--accent)' }} />
+              <span>
+                The ID prefix appears at the start of every patient ID (e.g.{' '}
+                <code style={{ background: 'var(--bg-tertiary)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>
+                  APOL-26-04-27-ABC123
+                </code>
+                ). It identifies your clinic in the ID, making records instantly recognisable. Each clinic should have a unique prefix.
+              </span>
+            </div>
+
+            {/* Default prefix warning */}
+            {idPrefix === 'PT-' && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: '#fff8e1', border: '1px solid #f59e0b',
+                borderRadius: 10, padding: '9px 14px',
+                fontSize: 12, color: '#92400e', fontWeight: 600,
+              }}>
+                <span>⚠</span>
+                <span>Default prefix not configured. Please set a unique prefix for your clinic.</span>
+              </div>
+            )}
+
+            {/* Prefix input */}
+            <div className="form-group">
+              <label className="form-label">ID Prefix (max 8 chars — letters and hyphens only)</label>
+              <input
+                className="input"
+                value={idPrefix}
+                maxLength={8}
+                placeholder="e.g. APOL-"
+                style={{ maxWidth: 220, textTransform: 'uppercase', fontFamily: 'monospace', fontSize: 14, fontWeight: 700, letterSpacing: '0.5px' }}
+                onChange={e => {
+                  const val = e.target.value.toUpperCase().replace(/[^A-Z\-]/g, '')
+                  setIdPrefix(val)
+                }}
+              />
+            </div>
+
+            {/* Generate ideas section */}
+            <div style={{
+              background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+              borderRadius: 12, padding: '14px 16px',
+              display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
+                Generate ideas from clinic name
+              </div>
+              <button
+                onClick={() => setPrefixIdeas(generatePrefixIdeas(clinic.name))}
+                style={{
+                  alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
+                  background: 'var(--bg-card)', color: 'var(--text-secondary)',
+                  border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+                </svg>
+                Generate Prefix Ideas
+              </button>
+
+              {prefixIdeas.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 2 }}>
+                  {prefixIdeas.map(idea => (
+                    <button
+                      key={idea}
+                      onClick={() => setIdPrefix(idea)}
+                      title={`Use "${idea}" as your prefix`}
+                      style={{
+                        background: idPrefix === idea ? 'var(--accent)' : 'var(--bg-card)',
+                        color: idPrefix === idea ? '#fff' : 'var(--text-secondary)',
+                        border: `1px solid ${idPrefix === idea ? 'var(--accent)' : 'var(--border)'}`,
+                        borderRadius: 20, padding: '4px 12px',
+                        fontSize: 11, fontWeight: 700, fontFamily: 'monospace',
+                        cursor: 'pointer', letterSpacing: '0.3px',
+                        transition: 'background 0.15s, color 0.15s',
+                      }}
+                    >
+                      {idea}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Save button */}
+            <Button
+              onClick={handleSavePrefix}
+              loading={prefixLoading}
+              style={{ alignSelf: 'flex-start', background: '#1B5E60', color: '#fff' }}
+            >
+              <SaveIcon size={13} /> Save Prefix
+            </Button>
+
           </div>
         </SettingCard>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import { pageTransition } from '../animations/slide'
 import type { Patient, PatientFormData } from '../../shared/types/patient'
@@ -24,6 +24,9 @@ const EMPTY_FORM: PatientFormData = {
   heightValue: '', heightUnit: 'cm',
   weightValue: '', weightUnit: 'kg'
 }
+
+// Change 4 — draft key constant
+const DRAFT_KEY = 'pmr_patient_form_draft'
 
 function patientToForm(p: Patient): PatientFormData {
   return {
@@ -61,6 +64,45 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
   const [rxPatient, setRxPatient] = useState<Patient | null>(null)
   const [showRx, setShowRx] = useState(false)
 
+  // Change 1 — clinic ID prefix state
+  const [idPrefix, setIdPrefix] = useState('PT-')
+
+  // Change 4 — draft state
+  const [hasDraft, setHasDraft] = useState(false)
+
+  // Change 1 — fetch clinic ID prefix on mount
+  useEffect(() => {
+    window.api.getClinicInfo().then((info: { idPrefix?: string }) => {
+      setIdPrefix(info.idPrefix || 'PT-')
+    })
+  }, [])
+
+  // Change 4 — restore draft on mount (new patient only)
+  useEffect(() => {
+    if (isEdit) return
+    const saved = localStorage.getItem(DRAFT_KEY)
+    if (saved) {
+      try {
+        const draft = JSON.parse(saved) as PatientFormData
+        if (draft.name?.trim()) {
+          setForm(draft)
+          setHasDraft(true)
+        }
+      } catch {}
+    }
+  }, [isEdit])
+
+  // Change 4 — auto-save draft on form change (new patient only)
+  useEffect(() => {
+    if (isEdit) return
+    const timer = setTimeout(() => {
+      if (form.name.trim() || form.phone.trim() || form.age.trim()) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [form, isEdit])
+
   useEffect(() => {
     if (!rxPatient) return
     const handler = (e: globalThis.KeyboardEvent) => {
@@ -81,7 +123,8 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
 
   const isEdit = !!initialPatient
   const effectiveBase = selectedPatient || initialPatient
-  const patientId = effectiveBase?.id ?? generatePatientId()
+  // Change 1 — use idPrefix when generating patient ID
+  const patientId = effectiveBase?.id ?? generatePatientId(idPrefix)
 
   const suggestEnabled = !isEdit && dropdownOpen && !selectedPatient
   const { suggestions, loading: suggestLoading, noResults, reset: resetSuggest } = useNameSuggest(form.name, suggestEnabled)
@@ -150,14 +193,25 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     setTimeout(() => nameInputRef.current?.focus(), 50)
   }
 
-  const handleSave = async () => {
+  // Change 3 — wrap handleSave in useCallback for stable reference
+  const handleSave = useCallback(async () => {
     const errs = validatePatientForm(form)
     if (hasErrors(errs)) { setErrors(errs as Partial<PatientFormData>); return }
 
     setSaving(true)
     const now = new Date()
+
+    // Change 1 — ID uniqueness check
+    const existingPatients = await window.api.getAllPatients()
+    let finalId = patientId
+    if (!isEdit && !selectedPatient) {
+      while (existingPatients.some((p: { id: string }) => p.id === finalId)) {
+        finalId = generatePatientId(idPrefix)
+      }
+    }
+
     const patient: Patient = {
-      id: patientId,
+      id: isEdit || selectedPatient ? patientId : finalId,
       name: form.name.trim(),
       age: Number(form.age),
       ...(form.sex ? { sex: form.sex as 'Male' | 'Female' | 'Other' } : {}),
@@ -183,6 +237,9 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
         ? `Returning visit recorded for ${patient.name}.`
         : 'New patient added successfully.'
       toast(msg, 'success')
+      // Change 4 — clear draft on successful save
+      localStorage.removeItem(DRAFT_KEY)
+      setHasDraft(false)
       setRxPatient(patient)
       if (!isEdit) {
         setForm(EMPTY_FORM)
@@ -193,9 +250,10 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     } else {
       toast(result.error || 'Failed to save. Please try again.', 'error')
     }
-  }
+  }, [form, patientId, idPrefix, effectiveBase, isEdit, selectedPatient, onSave, toast])
 
-  const handleClear = () => {
+  // Change 3 — wrap handleClear in useCallback
+  const handleClear = useCallback(() => {
     setForm(EMPTY_FORM)
     setErrors({})
     setSelectedPatient(null)
@@ -203,7 +261,22 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
     resetSuggest()
     setRxPatient(null)
     setShowRx(false)
-  }
+    // Change 4 — clear draft on explicit clear
+    localStorage.removeItem(DRAFT_KEY)
+    setHasDraft(false)
+  }, [resetSuggest])
+
+  // Change 3 — Ctrl+S keyboard shortcut to save
+  useEffect(() => {
+    const handler = (e: globalThis.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleSave])
 
   const showDropdown = !isEdit && !selectedPatient && dropdownOpen && (suggestLoading || noResults || suggestions.length > 0)
 
@@ -254,56 +327,37 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
         </button>
       </div>
 
-      {/* ── Print Prescription Banner ── */}
-      {rxPatient && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'linear-gradient(135deg, rgba(27,94,96,0.08), rgba(27,94,96,0.04))',
-            border: '1.5px solid rgba(27,94,96,0.3)',
-            borderRadius: 14, padding: '14px 20px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: 'rgba(27,94,96,0.1)', color: '#1B5E60',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E60' }}>{rxPatient.name} — saved</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Print prescription or dismiss · Shortcut: Ctrl+P</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button
-              onClick={() => setShowRx(true)}
-              style={{
-                background: '#1B5E60', color: '#fff', border: 'none',
-                borderRadius: 8, padding: '8px 16px', fontSize: 12,
-                fontWeight: 700, cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(27,94,96,0.4)',
-              }}
-            >
-              Print Rx
-            </button>
-            <button
-              onClick={() => setRxPatient(null)}
-              style={{
-                background: 'transparent', color: 'var(--text-muted)',
-                border: '1px solid var(--border)', borderRadius: 8,
-                padding: '8px 12px', fontSize: 12, cursor: 'pointer',
-              }}
-            >
-              Dismiss
-            </button>
-          </div>
-        </motion.div>
+      {/* Change 4 — Draft restored banner */}
+      {hasDraft && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'rgba(27,94,96,0.07)', border: '1px solid rgba(27,94,96,0.2)',
+          borderRadius: 10, padding: '9px 14px',
+        }}>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            Draft restored from before the app closed.
+          </span>
+          <button
+            onClick={() => { setForm(EMPTY_FORM); setHasDraft(false); localStorage.removeItem(DRAFT_KEY) }}
+            style={{ fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 8px' }}
+          >
+            Discard
+          </button>
+        </div>
+      )}
+
+      {/* Change 1 — Default prefix warning */}
+      {!isEdit && idPrefix === 'PT-' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.4)',
+          borderRadius: 10, padding: '10px 14px',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ca8a04"><path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>
+          <span style={{ fontSize: 12, color: '#92400e' }}>
+            Default ID prefix (PT-) is in use. <strong>Go to Settings → Patient ID Prefix</strong> to set a unique prefix for this clinic before adding patients.
+          </span>
+        </div>
       )}
 
       {showRx && rxPatient && (
@@ -586,6 +640,49 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
           </div>
         </div>
       </div>
+
+      {/* Change 2 — Floating Print Rx FAB (replaces top banner) */}
+      {rxPatient && (
+        <div style={{
+          position: 'fixed', bottom: 28, right: 28, zIndex: 200,
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8,
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            borderRadius: 12, padding: '8px 14px',
+            fontSize: 11, color: 'var(--text-muted)', boxShadow: 'var(--shadow-sm)',
+          }}>
+            {rxPatient.name} saved · Ctrl+P to print
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setShowRx(true)}
+              style={{
+                background: '#1B5E60', color: '#fff', border: 'none',
+                borderRadius: 12, padding: '12px 22px', fontSize: 13,
+                fontWeight: 700, cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(27,94,96,0.45)',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+              </svg>
+              Print Rx
+            </button>
+            <button
+              onClick={() => setRxPatient(null)}
+              style={{
+                background: 'var(--bg-card)', color: 'var(--text-muted)',
+                border: '1px solid var(--border)', borderRadius: 12,
+                padding: '12px 14px', fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

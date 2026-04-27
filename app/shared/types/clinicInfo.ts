@@ -10,6 +10,7 @@ export interface ClinicInfo {
   phone: string
   validity: string
   logo?: string  // base64 data URL
+  idPrefix?: string
 }
 
 export const DEFAULT_CLINIC_INFO: ClinicInfo = {
@@ -23,4 +24,5 @@ export const DEFAULT_CLINIC_INFO: ClinicInfo = {
   email: 'mirintikhab7@gmail.com',
   phone: '7006888514',
   validity: 'Valid for two visits within 15 days',
+  idPrefix: 'PT-',
 }

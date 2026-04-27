@@ -23,6 +23,7 @@
   ],
   "win": {
     "icon": "resources/icon.ico",
+    "publisherName": "Mir Faizan",
     "target": [
       {
         "target": "nsis",

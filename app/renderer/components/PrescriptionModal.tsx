@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Patient } from '../../shared/types/patient'
 import type { ClinicInfo } from '../../shared/types/clinicInfo'
 import { DEFAULT_CLINIC_INFO } from '../../shared/types/clinicInfo'
@@ -22,6 +22,15 @@ interface Props {
 export default function PrescriptionModal({ patient, onClose }: Props) {
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [clinic, setClinic] = useState<ClinicInfo>(DEFAULT_CLINIC_INFO)
+
+  // Capture the exact moment the modal was opened — frozen at mount
+  const printTimeRef = useRef<string>(
+    new Date().toLocaleString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    }).replace(',', '')
+  )
+  const printTime = printTimeRef.current
 
   useEffect(() => {
     window.api.getClinicInfo().then((info: ClinicInfo) => setClinic(info))
@@ -259,6 +268,9 @@ export default function PrescriptionModal({ patient, onClose }: Props) {
           <div style={{ fontSize: 10.5, textAlign: 'center', opacity: 0.9 }}>Email: {clinic.email}</div>
           <div style={{ fontSize: 10.5, textAlign: 'center', marginTop: 3, fontStyle: 'italic', textDecoration: 'underline' }}>
             {clinic.validity}
+          </div>
+          <div style={{ fontSize: 9, color: '#ccc', textAlign: 'right', marginTop: 4, opacity: 0.85, fontStyle: 'normal', textDecoration: 'none', fontWeight: 400 }}>
+            Printed: {printTime}
           </div>
         </div>
       </div>
