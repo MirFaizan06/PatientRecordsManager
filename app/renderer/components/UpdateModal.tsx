@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 
-export const UPDATE_CHECK_URL = 'https://pmr-web.netlify.app/version.json'
+export const UPDATE_CHECK_URL = 'https://raw.githubusercontent.com/MirFaizan06/PatientRecordsManager/master/version.json'
 
 export interface VersionInfo {
   version: string

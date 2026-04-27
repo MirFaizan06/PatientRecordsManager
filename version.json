@@ -1,0 +1,6 @@
+{
+  "version": "1.0.0",
+  "releaseDate": "2026-04-27",
+  "downloadUrl": "REPLACE_WITH_GOOGLE_DRIVE_DIRECT_LINK",
+  "releaseNotes": "Initial release with face unlock, prescription printing, CLI tool, and auto-update support."
+}

@@ -24,6 +24,7 @@
   "win": {
     "icon": "resources/icon.ico",
     "publisherName": "Mir Faizan",
+    "artifactName": "${productName} Setup.exe",
     "target": [
       {
         "target": "nsis",
