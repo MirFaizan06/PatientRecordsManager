@@ -11,17 +11,23 @@ Running the new installer upgrades in place (NSIS detects the existing install, 
 
 ## Your side — one-time setup
 
-### Step 1 — Deploy the website (free, GitHub Pages)
+### Step 1 — Deploy the website (free, Netlify)
 
-1. Create a free GitHub account at github.com if you don't have one.
-2. Create a new **public** repository named exactly: `pmr-website`
-3. Upload the contents of `C:\Users\Faizan\Desktop\PMR-Website\` to that repo.
-4. Go to repo **Settings → Pages → Source → Deploy from branch → main / (root)**.
-5. GitHub gives you a URL like: `https://mirfaizan06.github.io/pmr-website/`
-6. Your `version.json` is now live at:  
-   `https://mirfaizan06.github.io/pmr-website/version.json`
+The website folder already contains `netlify.toml` (security headers, caching) and `_redirects`.
 
-> **Alternatives:** Netlify and Cloudflare Pages both work — just drag the folder in.
+1. Go to [netlify.com](https://netlify.com) and sign up / log in (free).
+2. Click **Add new site → Import an existing project → GitHub**.
+3. Select the `pmr-website` repository.
+4. Build settings — leave blank (static site, no build command):
+   - Build command: *(empty)*
+   - Publish directory: `.`
+5. Click **Deploy site**. Netlify gives you a URL like `https://pmr-website.netlify.app`.
+6. Optionally set a custom domain under **Domain settings**.
+7. Your `version.json` is then live at:  
+   `https://<your-netlify-subdomain>.netlify.app/version.json`
+
+> **Also works:** GitHub Pages — go to repo Settings → Pages → Deploy from branch → main.  
+> Cloudflare Pages — drag the folder in at pages.cloudflare.com.
 
 ---
 
@@ -59,11 +65,10 @@ Commit → GitHub Pages serves the new file within ~60 seconds.
 In `app/renderer/components/UpdateModal.tsx`, line 6:
 
 ```ts
-export const UPDATE_CHECK_URL = 'https://mirfaizan06.github.io/pmr-website/version.json'
+export const UPDATE_CHECK_URL = 'https://pmr-web.netlify.app/version.json'
 ```
 
-Replace `mirfaizan06` with your actual GitHub username.  
-Then rebuild and distribute the app once. All subsequent updates only need Steps 2–3.
+This is already set correctly. All subsequent updates only need Steps 2–3.
 
 ---
 
@@ -97,3 +102,18 @@ The website itself (HTML/CSS/JS/version.json) is tiny (<50 KB total) and hosted 
 | `PMR-Website/version.json` | Remote version source of truth |
 | `PMR-Website/index.html` | Download page users land on |
 | `package.json` → `"version"` | Installed version (compared against remote) |
+
+
+Price — updated to ₹5,000 (fair price for lifetime access).
+
+Netlify files added:
+
+File	Purpose
+netlify.toml	Security headers (CSP, HSTS, X-Frame-Options, etc.), long-lived cache for CSS/JS, no-cache + CORS * for version.json and issued_licenses.json
+_redirects	Any unknown URL falls back to index.html (clean 404 handling)
+To deploy on Netlify:
+
+Go to netlify.com → Add new site → Import from GitHub → select MirFaizan06/pmr-website
+Leave build command blank, publish directory .
+Deploy — that's it. Every future git push auto-deploys.
+Once deployed, update UPDATE_CHECK_URL in UpdateModal.tsx to your Netlify URL.

@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Update this URL once the website is deployed
-export const UPDATE_CHECK_URL = 'https://mirfaizan06.github.io/pmr-website/version.json'
+export const UPDATE_CHECK_URL = 'https://pmr-web.netlify.app/version.json'
 
 export interface VersionInfo {
   version: string
