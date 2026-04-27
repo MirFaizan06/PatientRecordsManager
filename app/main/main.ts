@@ -1,5 +1,6 @@
-import { app, protocol } from 'electron'
+import { app, protocol, net } from 'electron'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import { createWindow } from './window'
 import { Storage } from './storage'
 import { Auth } from './auth'
@@ -14,12 +15,13 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 app.whenReady().then(async () => {
-  protocol.registerFileProtocol('app', (request, callback) => {
-    const urlPath = request.url.replace('app://', '')
+  // protocol.handle is the Electron 25+ API; returns proper Fetch Responses so face-api.js fetch() works
+  protocol.handle('app', (request) => {
+    const urlPath = request.url.slice('app://'.length)
     const base = app.isPackaged
       ? process.resourcesPath
       : path.join(app.getAppPath(), 'resources')
-    callback({ path: path.join(base, urlPath) })
+    return net.fetch(pathToFileURL(path.join(base, urlPath)).toString())
   })
 
   const userData     = app.getPath('userData')

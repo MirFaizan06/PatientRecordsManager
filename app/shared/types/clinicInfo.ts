@@ -9,6 +9,7 @@ export interface ClinicInfo {
   email: string
   phone: string
   validity: string
+  logo?: string  // base64 data URL
 }
 
 export const DEFAULT_CLINIC_INFO: ClinicInfo = {

@@ -13,7 +13,9 @@
     {
       "from": "resources/face-models",
       "to": "face-models"
-    },
+    }
+  ],
+  "extraFiles": [
     {
       "from": "cli/pmr.exe",
       "to": "pmr.exe"

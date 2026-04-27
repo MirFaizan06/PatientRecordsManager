@@ -301,9 +301,14 @@ export default function Settings() {
                 border: '1px solid var(--border)', borderRadius: 10,
                 padding: 16, background: '#fff', fontFamily: "'Times New Roman', Times, serif",
               }}>
-                <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: '#1B5E60', letterSpacing: '0.5px' }}>{clinic.name}</div>
-                  <div style={{ fontSize: 11, fontStyle: 'italic', color: '#444' }}>{clinic.subtitle}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                  {clinic.logo && (
+                    <img src={clinic.logo} alt="logo" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
+                  )}
+                  <div style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: '#1B5E60', letterSpacing: '0.5px' }}>{clinic.name}</div>
+                    <div style={{ fontSize: 11, fontStyle: 'italic', color: '#444' }}>{clinic.subtitle}</div>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1B5E60', paddingTop: 8, fontSize: 11 }}>
                   <div>
@@ -318,6 +323,69 @@ export default function Settings() {
                 </div>
               </div>
             )}
+
+            {/* Logo upload */}
+            <div className="form-group">
+              <label className="form-label">Clinic Logo (shown on prescription)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {clinic.logo ? (
+                  <img src={clinic.logo} alt="logo preview"
+                    style={{ width: 56, height: 56, objectFit: 'contain', border: '1px solid var(--border)', borderRadius: 8, background: '#fff' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 56, height: 56, border: '1.5px dashed var(--border)', borderRadius: 8,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--text-muted)', fontSize: 10, textAlign: 'center', lineHeight: 1.3,
+                  }}>
+                    No logo
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: 'var(--bg-tertiary)', color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
+                    Upload Image
+                    <input
+                      type="file" accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        const reader = new FileReader()
+                        reader.onload = ev => {
+                          const dataUrl = ev.target?.result as string
+                          setClinic(prev => ({ ...prev, logo: dataUrl }))
+                        }
+                        reader.readAsDataURL(file)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  {clinic.logo && (
+                    <button
+                      onClick={() => setClinic(prev => ({ ...prev, logo: undefined }))}
+                      style={{
+                        background: 'transparent', color: 'var(--error)',
+                        border: '1px solid var(--error)', borderRadius: 8,
+                        padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  PNG, JPG, SVG — replaces the<br />default caduceus circle logo
+                </div>
+              </div>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {([
@@ -336,7 +404,7 @@ export default function Settings() {
                   <label className="form-label">{label}</label>
                   <input
                     className="input"
-                    value={clinic[key]}
+                    value={(clinic[key] as string) ?? ''}
                     onChange={e => setClinic(prev => ({ ...prev, [key]: e.target.value }))}
                     placeholder={label}
                   />
