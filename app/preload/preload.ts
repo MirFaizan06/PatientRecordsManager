@@ -64,4 +64,7 @@ contextBridge.exposeInMainWorld('api', {
 
   faceLogin: () =>
     ipcRenderer.invoke('auth:face-login'),
+
+  readModelFile: (filename: string) =>
+    ipcRenderer.invoke('face:read-model-file', filename),
 })

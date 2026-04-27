@@ -1,5 +1,6 @@
 import { ipcMain, dialog, app } from 'electron'
 import fs from 'fs'
+import path from 'path'
 import type { Storage } from './storage'
 import type { Auth } from './auth'
 import type { Patient } from '../shared/types/patient'
@@ -110,4 +111,14 @@ export function registerIpcHandlers(storage: Storage, auth: Auth): void {
   ipcMain.handle('face:is-enrolled', () => storage.getFaceDescriptor() !== null)
 
   ipcMain.handle('auth:face-login', () => ({ success: true }))
+
+  // Read a face model file as raw bytes — avoids custom protocol fetch issues
+  ipcMain.handle('face:read-model-file', (_, filename: string) => {
+    const base = app.isPackaged
+      ? process.resourcesPath
+      : path.join(app.getAppPath(), 'resources')
+    const filePath = path.join(base, 'face-models', filename)
+    if (!fs.existsSync(filePath)) return null
+    return fs.readFileSync(filePath) // serialised as Uint8Array in renderer
+  })
 }

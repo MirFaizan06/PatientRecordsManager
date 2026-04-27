@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import { fadeInScale } from '../animations/fade'
 import { useAuth } from '../hooks/useAuth'
+import { loadFaceModels } from '../utils/loadFaceModels'
 
 interface AuthProps {
   onLogin: () => void
@@ -47,12 +48,7 @@ export default function Auth({ onLogin }: AuthProps) {
       if (!faceapi) { setFaceStatus('unavailable'); setFaceMessage('Face unlock unavailable'); return }
       if (cancelledRef.current) return
 
-      const MODEL_URL = 'app://face-models'
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      ])
+      await loadFaceModels(faceapi)
       if (cancelledRef.current) return
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })

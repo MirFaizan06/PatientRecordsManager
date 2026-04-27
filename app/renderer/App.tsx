@@ -19,6 +19,8 @@ import HowToUse from './pages/HowToUse'
 
 import { usePatients } from './hooks/usePatients'
 import type { Patient } from '../shared/types/patient'
+import UpdateModal, { checkForUpdate } from './components/UpdateModal'
+import type { VersionInfo } from './components/UpdateModal'
 
 import './styles/global.css'
 import './styles/table.css'
@@ -97,9 +99,10 @@ function SplashScreen() {
 
 function AppShell() {
   const { isAuthenticated, login, logout } = useAuthContext()
-  const [splashDone, setSplashDone]       = useState(false)
-  const [page, setPage]                   = useState<AppPage>('dashboard')
+  const [splashDone, setSplashDone]           = useState(false)
+  const [page, setPage]                       = useState<AppPage>('dashboard')
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [updateInfo, setUpdateInfo]           = useState<VersionInfo | null>(null)
   const { patients, loading: pLoading, loadAll, save } = usePatients()
 
   useEffect(() => {
@@ -107,6 +110,14 @@ function AppShell() {
     const timer = setTimeout(() => setSplashDone(true), 7000)
     return () => clearTimeout(timer)
   }, [])
+
+  // Check for updates once after login
+  useEffect(() => {
+    if (!isAuthenticated || !splashDone) return
+    window.api.getVersion().then((v: string) =>
+      checkForUpdate(v).then(info => { if (info) setUpdateInfo(info) })
+    )
+  }, [isAuthenticated, splashDone])
 
   const navigate = useCallback((target: AppPage, patient?: Patient | null) => {
     if (patient !== undefined) setSelectedPatient(patient)
@@ -125,6 +136,7 @@ function AppShell() {
 
   return (
     <div className="app-shell">
+      {updateInfo && <UpdateModal info={updateInfo} onDismiss={() => setUpdateInfo(null)} />}
       {/* Top Bar */}
       <div className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

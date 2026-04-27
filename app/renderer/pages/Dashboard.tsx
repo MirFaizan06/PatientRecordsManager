@@ -2,6 +2,10 @@ import { motion } from 'framer-motion'
 import { staggerContainer, staggerItem } from '../animations/fade'
 import { PlusIcon, SearchIcon, TableIcon, SettingsIcon, HelpIcon } from '../components/Icons'
 import type { FC } from 'react'
+import morningImg  from '../assets/morning.png'
+import afternoonImg from '../assets/afternoon.png'
+import eveningImg  from '../assets/evening.png'
+import nightImg    from '../assets/night.png'
 
 type Page = 'patient-form' | 'search' | 'data-viewer' | 'settings' | 'how-to-use'
 
@@ -23,7 +27,8 @@ const SECONDARY_CARDS: { id: Page; Icon: FC<{ size?: number }>; title: string; d
 
 export default function Dashboard({ onNavigate, patientCount }: DashboardProps) {
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
+  const heroBg = hour < 12 ? morningImg : hour < 17 ? afternoonImg : hour < 21 ? eveningImg : nightImg
 
   return (
     <div style={{ padding: '32px 32px 48px', display: 'flex', flexDirection: 'column', gap: 28, overflow: 'auto', height: '100%', boxSizing: 'border-box' }}>
@@ -35,7 +40,7 @@ export default function Dashboard({ onNavigate, patientCount }: DashboardProps) 
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         style={{
           borderRadius: 24,
-          background: 'linear-gradient(135deg, #0e2c1c 0%, #1B5E60 60%, #22757a 100%)',
+          background: `linear-gradient(135deg, rgba(14,44,28,0.92) 0%, rgba(27,94,96,0.88) 60%, rgba(34,117,122,0.85) 100%), url(${heroBg}) center/cover no-repeat`,
           padding: '36px 40px',
           position: 'relative',
           overflow: 'hidden',
