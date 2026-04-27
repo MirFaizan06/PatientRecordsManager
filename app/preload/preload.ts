@@ -67,4 +67,7 @@ contextBridge.exposeInMainWorld('api', {
 
   readModelFile: (filename: string) =>
     ipcRenderer.invoke('face:read-model-file', filename),
+
+  checkLicense: () => ipcRenderer.invoke('license:check'),
+  activateLicense: (data: unknown) => ipcRenderer.invoke('license:activate', data),
 })

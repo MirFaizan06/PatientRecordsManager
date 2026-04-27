@@ -10,6 +10,7 @@ import ThemeToggle from './components/ThemeToggle'
 import { LogoutIcon, HomeIcon, PlusIcon, SearchIcon, TableIcon, SettingsIcon, HelpIcon } from './components/Icons'
 
 import Auth from './pages/Auth'
+import LicensePage from './pages/LicensePage'
 import Dashboard from './pages/Dashboard'
 import PatientForm from './pages/PatientForm'
 import Search from './pages/Search'
@@ -99,11 +100,16 @@ function SplashScreen() {
 
 function AppShell() {
   const { isAuthenticated, login, logout } = useAuthContext()
+  const [licensed, setLicensed]               = useState<boolean | null>(null)
   const [splashDone, setSplashDone]           = useState(false)
   const [page, setPage]                       = useState<AppPage>('dashboard')
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [updateInfo, setUpdateInfo]           = useState<VersionInfo | null>(null)
   const { patients, loading: pLoading, loadAll, save } = usePatients()
+
+  useEffect(() => {
+    window.api.checkLicense().then((r: { valid: boolean }) => setLicensed(r.valid))
+  }, [])
 
   useEffect(() => {
     loadAll()
@@ -125,6 +131,9 @@ function AppShell() {
   }, [])
 
   if (!splashDone) return <SplashScreen />
+
+  if (licensed === null) return null  // waiting for license check
+  if (!licensed) return <LicensePage onActivated={() => setLicensed(true)} />
 
   if (!isAuthenticated) {
     return (

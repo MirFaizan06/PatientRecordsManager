@@ -6,6 +6,7 @@ import type { Auth } from './auth'
 import type { Patient } from '../shared/types/patient'
 import { createBackup } from './backup'
 import { flattenPatients } from '../shared/utils/flattenData'
+import { loadActivatedLicense, activateLicense, type LicenseData } from './license'
 
 export function registerIpcHandlers(storage: Storage, auth: Auth): void {
   ipcMain.handle('auth:login', async (_, password: string) => {
@@ -111,6 +112,15 @@ export function registerIpcHandlers(storage: Storage, auth: Auth): void {
   ipcMain.handle('face:is-enrolled', () => storage.getFaceDescriptor() !== null)
 
   ipcMain.handle('auth:face-login', () => ({ success: true }))
+
+  ipcMain.handle('license:check', () => {
+    const lic = loadActivatedLicense()
+    return lic ? { valid: true, id: lic.id, user: lic.user } : { valid: false }
+  })
+
+  ipcMain.handle('license:activate', (_, data: LicenseData) => {
+    return activateLicense(data)
+  })
 
   // Read a face model file as raw bytes — avoids custom protocol fetch issues
   ipcMain.handle('face:read-model-file', (_, filename: string) => {
