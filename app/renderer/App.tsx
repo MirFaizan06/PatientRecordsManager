@@ -113,7 +113,7 @@ function AppShell() {
 
   useEffect(() => {
     loadAll()
-    const timer = setTimeout(() => setSplashDone(true), 7000)
+    const timer = setTimeout(() => setSplashDone(true), 1800)
     return () => clearTimeout(timer)
   }, [])
 

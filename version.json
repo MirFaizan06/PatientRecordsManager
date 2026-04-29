@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "releaseDate": "2026-04-27",
+  "version": "1.1.1",
+  "releaseDate": "2026-04-29",
   "downloadUrl": "REPLACE_WITH_GOOGLE_DRIVE_DIRECT_LINK",
-  "releaseNotes": "Initial release with face unlock, prescription printing, CLI tool, and auto-update support."
+  "releaseNotes": "Bug fix: fixed Add Patient form not loading due to variable initialization order error. Reduced splash screen delay from 7s to 1.8s."
 }

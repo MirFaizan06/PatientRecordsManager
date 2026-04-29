@@ -70,6 +70,9 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
   // Change 4 — draft state
   const [hasDraft, setHasDraft] = useState(false)
 
+  // Declared early so useEffect dependency arrays below can reference it without hitting TDZ
+  const isEdit = !!initialPatient
+
   // Change 1 — fetch clinic ID prefix on mount
   useEffect(() => {
     window.api.getClinicInfo().then((info: { idPrefix?: string }) => {
@@ -121,7 +124,6 @@ export default function PatientForm({ initialPatient, patientCount, onSave, onBa
   const wrapperRef = useRef<HTMLDivElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
-  const isEdit = !!initialPatient
   const effectiveBase = selectedPatient || initialPatient
   // Change 1 — use idPrefix when generating patient ID
   const patientId = effectiveBase?.id ?? generatePatientId(idPrefix)
